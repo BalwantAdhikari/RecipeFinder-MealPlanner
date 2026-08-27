@@ -37,4 +37,6 @@ Thumbs.db
 # Test / cache
 coverage/
 .vitest/
+__screenshots__/
+.vitest-attachments/
 *.tsbuildinfo

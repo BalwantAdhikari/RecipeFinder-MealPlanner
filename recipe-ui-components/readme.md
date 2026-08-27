@@ -197,22 +197,36 @@ npm test           # unit + component tests
 
 ### Tests
 
-Two Vitest projects:
+58 tests across two Vitest projects:
 
-- **`unit`** — helper logic in Stencil's mock DOM. Runs anywhere.
+- **`unit`** — helper logic in Stencil's mock DOM. Runs anywhere, no browser.
   ```bash
   npx vitest run --project unit
   ```
-- **`browser`** — component contract tests in real Chromium via Playwright. Requires the browser
-  binary and its system libraries:
+- **`browser`** — component props/events/slots contracts in real Chromium via Playwright:
   ```bash
   npx playwright install chromium
-  sudo npx playwright install-deps chromium   # Linux/WSL only
   npx vitest run --project browser
   ```
 
-The component tests need a real browser: Stencil's mock DOM does not apply the `props` render
-option and lacks `DragEvent`/`DataTransfer`.
+On Ubuntu 22.04 / WSL, Chromium also needs one system library that the Playwright download does
+not include:
+
+```bash
+sudo apt-get install -y libasound2
+```
+
+Prefer that over `sudo npx playwright install-deps chromium`, which fails under nvm because `sudo`
+resets `PATH`, and pulls in 22 packages plus fonts when this is usually the only one missing.
+
+The component tests require a real browser — Stencil's mock DOM has no `DragEvent`/`DataTransfer`
+and does not lay elements out. Two related constraints when adding tests:
+
+- Pass props and slotted children through **JSX**, not a render options object. `render()`'s real
+  options type only accepts `clearStage` / `stageAttrs` / `waitForReady` / `spyOn` / `registry`.
+- Do **not** use `vi.useFakeTimers()` around `render()`. It polls for layout on the timers the fake
+  clock freezes, so the render deadlocks — and a timed-out test leaks the fake clock into the rest
+  of the file. Use short real waits for debounce assertions.
 
 ## License
 

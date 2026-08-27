@@ -42,8 +42,8 @@ Track progress by checking boxes. Suggested build order is at the bottom.
       matches the package name and dist paths.
 - [x] **1.3** Starter `my-component` deleted
 - [x] **1.4** Five components built (see table below)
-- [~] **1.5** 49 component test cases written and type-checking against the real API, **but not yet
-      executed** — see "Blocked" below. 9 helper unit tests pass.
+- [x] **1.5** **58/58 tests pass** — 49 component contract tests in real Chromium + 9 helper unit
+      tests. See "Testing notes" below.
 - [x] **1.6** JSDoc on every `@Prop`/`@Event`/`@slot`/`@part`; Stencil generates per-component
       `readme.md` with full props/events/slots/parts tables
 - [x] **1.7** Library README with usage, integration notes, per-component tables, theming
@@ -52,24 +52,33 @@ Track progress by checking boxes. Suggested build order is at the bottom.
 - [x] **1.9** Project-local `.npmrc` pinning the public registry, since the machine default points
       at a private corporate Artifactory
 
-### Blocked: browser test execution
-
-The `browser` Vitest project needs real Chromium. The binary is installed, but it will not launch
-on this WSL box:
-
-```
-error while loading shared libraries: libasound.so.2: cannot open shared object file
-```
-
-Fix requires root:
+### Testing notes
 
 ```bash
-sudo npx playwright install-deps chromium
-npx vitest run --project browser
+npx vitest run                      # all 58
+npx vitest run --project unit       # helpers, no browser needed
+npx vitest run --project browser    # component contracts, real Chromium
 ```
 
-Stencil's mock DOM is **not** a workaround: `render()`'s real options type has no `props`/`slots`,
-and `DragEvent`/`DataTransfer` are undefined there. Confirmed empirically — all 49 cases fail.
+Three environment gotchas already resolved, worth knowing if this is set up on another machine:
+
+1. **Chromium needs one system library on Ubuntu 22.04/WSL.** Playwright's browser download alone
+   is not enough:
+   ```bash
+   sudo apt-get install -y libasound2
+   ```
+   `sudo npx playwright install-deps chromium` fails under nvm (`sudo` resets `PATH`), and would
+   install 22 packages plus fonts when only this one was missing.
+2. **Never call `vi.useFakeTimers()` around browser-mode `render()`.** It polls for layout on the
+   same timers the fake clock freezes, so the render never resolves. Worse, a test that times out
+   before `vi.useRealTimers()` leaks the fake clock into every later test in the file — that turned
+   2 real failures into 7. Debounce tests use short real waits instead.
+3. **Stencil's mock DOM cannot substitute for the browser.** `render()`'s actual options type has
+   no `props`/`slots` (the `RenderOptions` exported from `types.js` that does is vestigial and unused),
+   and `DragEvent`/`DataTransfer` are undefined. Props and slots go through JSX.
+
+`vitest.config` is `.mts` so Vite loads it as ESM without a `type: module` in `package.json`, which
+would break the published CJS entry point.
 
 ### Components as built
 

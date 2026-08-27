@@ -1,10 +1,21 @@
-import { render, h, describe, it, expect, vi } from '@stencil/vitest';
+import { render, h, describe, it, expect } from '@stencil/vitest';
 
 /** Type into an input and fire the `input` event the component listens for. */
 function type(input: HTMLInputElement, value: string) {
   input.value = value;
   input.dispatchEvent(new Event('input', { bubbles: true }));
 }
+
+/**
+ * Wait real milliseconds.
+ *
+ * These tests deliberately avoid `vi.useFakeTimers()`. Vitest's browser-mode
+ * `render()` polls for the element to be laid out before it resolves, and that
+ * polling runs on the same timers the fake clock freezes — so faking timers
+ * before a render deadlocks it. Short real debounce windows are cheaper than
+ * working around that.
+ */
+const wait = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 describe('recipe-search-bar', () => {
   it('seeds the input from the value prop', async () => {
@@ -25,26 +36,24 @@ describe('recipe-search-bar', () => {
   });
 
   it('debounces searchChange into a single emission with the latest query', async () => {
-    vi.useFakeTimers();
-    const { root, spyOnEvent } = await render(<recipe-search-bar debounceMs={200} />);
+    const { root, spyOnEvent } = await render(<recipe-search-bar debounceMs={80} />);
     const spy = spyOnEvent('searchChange');
     const input = root.shadowRoot!.querySelector('input') as HTMLInputElement;
 
+    // Synchronous, so all three land well inside the debounce window.
     type(input, 'c');
     type(input, 'ch');
     type(input, 'chi');
     expect(spy.length).toBe(0);
 
-    vi.advanceTimersByTime(200);
+    await wait(160);
 
     expect(spy.length).toBe(1);
     expect(spy.lastEvent!.detail).toEqual({ query: 'chi' });
-    vi.useRealTimers();
   });
 
   it('flushes immediately on submit without waiting for the debounce', async () => {
-    vi.useFakeTimers();
-    const { root, spyOnEvent } = await render(<recipe-search-bar debounceMs={5000} />);
+    const { root, spyOnEvent } = await render(<recipe-search-bar debounceMs={300} />);
     const spy = spyOnEvent('searchChange');
     const input = root.shadowRoot!.querySelector('input') as HTMLInputElement;
 
@@ -57,9 +66,8 @@ describe('recipe-search-bar', () => {
     expect(spy.lastEvent!.detail).toEqual({ query: 'soup' });
 
     // The pending debounce must have been cancelled, not merely outpaced.
-    vi.advanceTimersByTime(5000);
+    await wait(400);
     expect(spy.length).toBe(1);
-    vi.useRealTimers();
   });
 
   it('shows the clear button only when there is a query', async () => {
