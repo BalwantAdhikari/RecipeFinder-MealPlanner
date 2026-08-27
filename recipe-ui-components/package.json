@@ -1,7 +1,19 @@
 {
   "name": "recipe-ui-components",
-  "version": "0.0.1",
-  "description": "Stencil Component Starter",
+  "version": "0.1.0",
+  "description": "Reusable StencilJS web components for a Recipe Finder & Meal Planner: recipe cards, search, filters, weekly meal-plan days and ratings.",
+  "license": "MIT",
+  "author": "Balwant Adhikari",
+  "keywords": [
+    "stencil",
+    "stenciljs",
+    "web-components",
+    "custom-elements",
+    "recipe",
+    "meal-planner",
+    "ui-components",
+    "svelte"
+  ],
   "main": "dist/index.cjs.js",
   "module": "dist/index.js",
   "types": "dist/types/index.d.ts",
@@ -10,33 +22,35 @@
   "unpkg": "dist/recipe-ui-components/recipe-ui-components.esm.js",
   "exports": {
     ".": {
-      "import": "./dist/recipe-ui-components/recipe-ui-components.esm.js",
-      "require": "./dist/recipe-ui-components/recipe-ui-components.cjs.js"
+      "types": "./dist/types/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs.js"
     },
-    "./my-component": {
-      "import": "./dist/components/my-component.js",
-      "types": "./dist/components/my-component.d.ts"
+    "./components/*": {
+      "types": "./dist/components/*.d.ts",
+      "import": "./dist/components/*.js"
     },
     "./loader": {
+      "types": "./loader/index.d.ts",
       "import": "./loader/index.js",
-      "require": "./loader/index.cjs",
-      "types": "./loader/index.d.ts"
+      "require": "./loader/index.cjs.js"
     }
-  },
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/stenciljs/component-starter.git"
   },
   "files": [
     "dist/",
     "loader/"
   ],
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  },
   "scripts": {
     "build": "stencil build",
     "start": "stencil build --dev --watch --serve",
     "test": "stencil-test --prod",
     "test:watch": "stencil-test --prod --watch",
-    "generate": "stencil generate"
+    "generate": "stencil generate",
+    "prepublishOnly": "npm run build"
   },
   "devDependencies": {
     "@stencil/core": "^4.27.1 || ^5.0.0-0",
@@ -45,6 +59,5 @@
     "@vitest/browser-playwright": "^4.0.0",
     "playwright": "^1.52.0",
     "vitest": "^4.0.0"
-  },
-  "license": "MIT"
+  }
 }

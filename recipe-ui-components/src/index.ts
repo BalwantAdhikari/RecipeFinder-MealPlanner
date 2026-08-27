@@ -1,12 +1,26 @@
 /**
- * @fileoverview entry point for your component library
+ * @fileoverview entry point for the recipe-ui-components library
  *
- * This is the entry point for your component library. Use this file to export utilities,
- * constants or data structure that accompany your components.
+ * Exports the public type contracts and helpers that accompany the components.
  *
- * DO NOT use this file to export your components. Instead, use the recommended approaches
- * to consume components of this package as outlined in the `README.md`.
+ * DO NOT export components from here. Consume them either by registering all
+ * custom elements via the loader:
+ *
+ *   import { defineCustomElements } from 'recipe-ui-components/loader';
+ *   defineCustomElements();
+ *
+ * or by importing a single element directly:
+ *
+ *   import { RecipeCard } from 'recipe-ui-components/components/recipe-card';
  */
 
-export { format } from './utils/utils';
+export { parseObjectProp, parseArrayProp, debounce } from './utils/utils';
+export type {
+  Recipe,
+  RecipeIngredient,
+  RecipeSource,
+  RecipeFilters,
+  MealSlot,
+  PlannedMeal,
+} from './types/recipe';
 export type * from './components.d.ts';

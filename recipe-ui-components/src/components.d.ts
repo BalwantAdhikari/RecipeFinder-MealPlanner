@@ -5,64 +5,522 @@
  * It contains typing information for all components that exist in this project.
  */
 import { HTMLStencilElement, JSXBase } from "@stencil/core/internal";
+import { MealSlot, PlannedMeal, Recipe, RecipeFilters } from "./types/recipe";
+export { MealSlot, PlannedMeal, Recipe, RecipeFilters } from "./types/recipe";
 export namespace Components {
-    interface MyComponent {
+    /**
+     * One day column of the weekly meal plan, with a breakfast/lunch/dinner slot.
+     * Each empty slot is a drop target and a click target, so a consumer can wire
+     * either drag-and-drop or a picker dialog off the same `addMealRequest` event.
+     */
+    interface MealPlanDay {
         /**
-          * The first name
+          * Label shown on the affordance for an empty meal slot.
+          * @default '+ Add'
          */
-        "first": string;
+        "addLabel": string;
         /**
-          * The last name
+          * Day label, e.g. `Monday`.
          */
-        "last": string;
+        "day": string;
         /**
-          * The middle name
+          * Highlights the column as the current day.
+          * @default false
          */
-        "middle": string;
+        "isToday": boolean;
+        /**
+          * Meals assigned to this day. Accepts an array or a JSON string.
+         */
+        "meals"?: PlannedMeal[] | string;
+    }
+    /**
+     * A single recipe tile: image, title, category/area meta, and a favorite toggle.
+     */
+    interface RecipeCard {
+        /**
+          * Renders a denser card with the description and meta row hidden.
+          * @default false
+         */
+        "compact": boolean;
+        /**
+          * Whether this recipe is currently in the user's favorites.
+          * @default false
+         */
+        "isFavorite": boolean;
+        /**
+          * The recipe to display. Accepts either an object (set as a DOM property) or a JSON string (set as an attribute), so it works from any framework.
+         */
+        "recipe"?: Recipe | string;
+    }
+    /**
+     * Category and cuisine filters for the recipe list.
+     * Fully controlled: the component never holds selection state of its own. It
+     * emits `filterChange` with the complete next filter object, so the consumer's
+     * store stays the single source of truth.
+     */
+    interface RecipeFilterPanel {
+        /**
+          * Available cuisines/areas. Accepts an array or a JSON string.
+         */
+        "areas"?: string[] | string;
+        /**
+          * Available categories. Accepts an array or a JSON string.
+         */
+        "categories"?: string[] | string;
+        /**
+          * Hides the "Clear all" button when the consumer handles resets elsewhere.
+          * @default false
+         */
+        "hideClear": boolean;
+        /**
+          * Currently active filters. Accepts an object or a JSON string.
+         */
+        "selected"?: RecipeFilters | string;
+    }
+    /**
+     * A star rating, usable either as a read-only display or an input.
+     * When `readonly` is false the stars form a radio group so keyboard users can
+     * pick a value with arrow keys, matching native radio semantics.
+     */
+    interface RecipeRating {
+        /**
+          * Accessible label for the group.
+          * @default 'Rating'
+         */
+        "label": string;
+        /**
+          * Number of stars to render.
+          * @default 5
+         */
+        "max": number;
+        /**
+          * When true the stars are display-only and emit nothing.
+          * @default false
+         */
+        "readonly": boolean;
+        /**
+          * Current rating. Clamped to `0..max`.
+          * @default 0
+         */
+        "value": number;
+    }
+    /**
+     * A debounced search input for recipe queries.
+     * Keystrokes are coalesced so a consumer can wire `searchChange` straight to an
+     * API call without throttling on their side. Submitting the form (Enter) or
+     * pressing the search button flushes immediately.
+     */
+    interface RecipeSearchBar {
+        /**
+          * Milliseconds to wait after the last keystroke before emitting.
+          * @default 300
+         */
+        "debounceMs": number;
+        /**
+          * Accessible label for the input, used when no visible label is present.
+          * @default 'Search recipes'
+         */
+        "label": string;
+        /**
+          * Placeholder text for the input.
+          * @default 'Search recipes…'
+         */
+        "placeholder": string;
+        /**
+          * Imperatively focus the input, e.g. after opening a search overlay.
+         */
+        "setFocus": () => Promise<void>;
+        /**
+          * Current query. Treated as the initial value and on external resets.
+          * @default ''
+         */
+        "value": string;
     }
 }
+export interface MealPlanDayCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLMealPlanDayElement;
+}
+export interface RecipeCardCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLRecipeCardElement;
+}
+export interface RecipeFilterPanelCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLRecipeFilterPanelElement;
+}
+export interface RecipeRatingCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLRecipeRatingElement;
+}
+export interface RecipeSearchBarCustomEvent<T> extends CustomEvent<T> {
+    detail: T;
+    target: HTMLRecipeSearchBarElement;
+}
 declare global {
-    interface HTMLMyComponentElement extends Components.MyComponent, HTMLStencilElement {
+    interface HTMLMealPlanDayElementEventMap {
+        "removeMeal": { day: string; slot: MealSlot; recipeId: string };
+        "addMealRequest": { day: string; slot: MealSlot };
+        "mealDrop": { day: string; slot: MealSlot; recipeId: string };
     }
-    var HTMLMyComponentElement: {
-        prototype: HTMLMyComponentElement;
-        new (): HTMLMyComponentElement;
+    /**
+     * One day column of the weekly meal plan, with a breakfast/lunch/dinner slot.
+     * Each empty slot is a drop target and a click target, so a consumer can wire
+     * either drag-and-drop or a picker dialog off the same `addMealRequest` event.
+     */
+    interface HTMLMealPlanDayElement extends Components.MealPlanDay, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLMealPlanDayElementEventMap>(type: K, listener: (this: HTMLMealPlanDayElement, ev: MealPlanDayCustomEvent<HTMLMealPlanDayElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLMealPlanDayElementEventMap>(type: K, listener: (this: HTMLMealPlanDayElement, ev: MealPlanDayCustomEvent<HTMLMealPlanDayElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLMealPlanDayElement: {
+        prototype: HTMLMealPlanDayElement;
+        new (): HTMLMealPlanDayElement;
+    };
+    interface HTMLRecipeCardElementEventMap {
+        "favoriteToggle": { recipeId: string; isFavorite: boolean };
+        "viewDetails": { recipeId: string };
+    }
+    /**
+     * A single recipe tile: image, title, category/area meta, and a favorite toggle.
+     */
+    interface HTMLRecipeCardElement extends Components.RecipeCard, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLRecipeCardElementEventMap>(type: K, listener: (this: HTMLRecipeCardElement, ev: RecipeCardCustomEvent<HTMLRecipeCardElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLRecipeCardElementEventMap>(type: K, listener: (this: HTMLRecipeCardElement, ev: RecipeCardCustomEvent<HTMLRecipeCardElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLRecipeCardElement: {
+        prototype: HTMLRecipeCardElement;
+        new (): HTMLRecipeCardElement;
+    };
+    interface HTMLRecipeFilterPanelElementEventMap {
+        "filterChange": RecipeFilters;
+        "filterClear": void;
+    }
+    /**
+     * Category and cuisine filters for the recipe list.
+     * Fully controlled: the component never holds selection state of its own. It
+     * emits `filterChange` with the complete next filter object, so the consumer's
+     * store stays the single source of truth.
+     */
+    interface HTMLRecipeFilterPanelElement extends Components.RecipeFilterPanel, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLRecipeFilterPanelElementEventMap>(type: K, listener: (this: HTMLRecipeFilterPanelElement, ev: RecipeFilterPanelCustomEvent<HTMLRecipeFilterPanelElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLRecipeFilterPanelElementEventMap>(type: K, listener: (this: HTMLRecipeFilterPanelElement, ev: RecipeFilterPanelCustomEvent<HTMLRecipeFilterPanelElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLRecipeFilterPanelElement: {
+        prototype: HTMLRecipeFilterPanelElement;
+        new (): HTMLRecipeFilterPanelElement;
+    };
+    interface HTMLRecipeRatingElementEventMap {
+        "rate": { value: number };
+    }
+    /**
+     * A star rating, usable either as a read-only display or an input.
+     * When `readonly` is false the stars form a radio group so keyboard users can
+     * pick a value with arrow keys, matching native radio semantics.
+     */
+    interface HTMLRecipeRatingElement extends Components.RecipeRating, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLRecipeRatingElementEventMap>(type: K, listener: (this: HTMLRecipeRatingElement, ev: RecipeRatingCustomEvent<HTMLRecipeRatingElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLRecipeRatingElementEventMap>(type: K, listener: (this: HTMLRecipeRatingElement, ev: RecipeRatingCustomEvent<HTMLRecipeRatingElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLRecipeRatingElement: {
+        prototype: HTMLRecipeRatingElement;
+        new (): HTMLRecipeRatingElement;
+    };
+    interface HTMLRecipeSearchBarElementEventMap {
+        "searchChange": { query: string };
+        "searchClear": void;
+    }
+    /**
+     * A debounced search input for recipe queries.
+     * Keystrokes are coalesced so a consumer can wire `searchChange` straight to an
+     * API call without throttling on their side. Submitting the form (Enter) or
+     * pressing the search button flushes immediately.
+     */
+    interface HTMLRecipeSearchBarElement extends Components.RecipeSearchBar, HTMLStencilElement {
+        addEventListener<K extends keyof HTMLRecipeSearchBarElementEventMap>(type: K, listener: (this: HTMLRecipeSearchBarElement, ev: RecipeSearchBarCustomEvent<HTMLRecipeSearchBarElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | AddEventListenerOptions): void;
+        addEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | AddEventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLRecipeSearchBarElementEventMap>(type: K, listener: (this: HTMLRecipeSearchBarElement, ev: RecipeSearchBarCustomEvent<HTMLRecipeSearchBarElementEventMap[K]>) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof DocumentEventMap>(type: K, listener: (this: Document, ev: DocumentEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener<K extends keyof HTMLElementEventMap>(type: K, listener: (this: HTMLElement, ev: HTMLElementEventMap[K]) => any, options?: boolean | EventListenerOptions): void;
+        removeEventListener(type: string, listener: EventListenerOrEventListenerObject, options?: boolean | EventListenerOptions): void;
+    }
+    var HTMLRecipeSearchBarElement: {
+        prototype: HTMLRecipeSearchBarElement;
+        new (): HTMLRecipeSearchBarElement;
     };
     interface HTMLElementTagNameMap {
-        "my-component": HTMLMyComponentElement;
+        "meal-plan-day": HTMLMealPlanDayElement;
+        "recipe-card": HTMLRecipeCardElement;
+        "recipe-filter-panel": HTMLRecipeFilterPanelElement;
+        "recipe-rating": HTMLRecipeRatingElement;
+        "recipe-search-bar": HTMLRecipeSearchBarElement;
     }
 }
 declare namespace LocalJSX {
-    interface MyComponent {
+    type OneOf<K extends string, PropT, AttrT = PropT> = { [P in K]: PropT } & { [P in `attr:${K}`]?: never } | { [P in `attr:${K}`]: AttrT } & { [P in K]?: never };
+
+    /**
+     * One day column of the weekly meal plan, with a breakfast/lunch/dinner slot.
+     * Each empty slot is a drop target and a click target, so a consumer can wire
+     * either drag-and-drop or a picker dialog off the same `addMealRequest` event.
+     */
+    interface MealPlanDay {
         /**
-          * The first name
+          * Label shown on the affordance for an empty meal slot.
+          * @default '+ Add'
          */
-        "first"?: string;
+        "addLabel"?: string;
         /**
-          * The last name
+          * Day label, e.g. `Monday`.
          */
-        "last"?: string;
+        "day": string;
         /**
-          * The middle name
+          * Highlights the column as the current day.
+          * @default false
          */
-        "middle"?: string;
+        "isToday"?: boolean;
+        /**
+          * Meals assigned to this day. Accepts an array or a JSON string.
+         */
+        "meals"?: PlannedMeal[] | string;
+        /**
+          * Emitted when an empty slot is activated, asking the consumer to open a picker.
+         */
+        "onAddMealRequest"?: (event: MealPlanDayCustomEvent<{ day: string; slot: MealSlot }>) => void;
+        /**
+          * Emitted when a recipe is dropped onto a slot. Carries the dragged id.
+         */
+        "onMealDrop"?: (event: MealPlanDayCustomEvent<{ day: string; slot: MealSlot; recipeId: string }>) => void;
+        /**
+          * Emitted when the user removes a planned meal.
+         */
+        "onRemoveMeal"?: (event: MealPlanDayCustomEvent<{ day: string; slot: MealSlot; recipeId: string }>) => void;
+    }
+    /**
+     * A single recipe tile: image, title, category/area meta, and a favorite toggle.
+     */
+    interface RecipeCard {
+        /**
+          * Renders a denser card with the description and meta row hidden.
+          * @default false
+         */
+        "compact"?: boolean;
+        /**
+          * Whether this recipe is currently in the user's favorites.
+          * @default false
+         */
+        "isFavorite"?: boolean;
+        /**
+          * Emitted when the favorite button is activated. The payload carries the *requested* next state; the consumer owns the actual favorites store.
+         */
+        "onFavoriteToggle"?: (event: RecipeCardCustomEvent<{ recipeId: string; isFavorite: boolean }>) => void;
+        /**
+          * Emitted when the user asks to open the full recipe.
+         */
+        "onViewDetails"?: (event: RecipeCardCustomEvent<{ recipeId: string }>) => void;
+        /**
+          * The recipe to display. Accepts either an object (set as a DOM property) or a JSON string (set as an attribute), so it works from any framework.
+         */
+        "recipe"?: Recipe | string;
+    }
+    /**
+     * Category and cuisine filters for the recipe list.
+     * Fully controlled: the component never holds selection state of its own. It
+     * emits `filterChange` with the complete next filter object, so the consumer's
+     * store stays the single source of truth.
+     */
+    interface RecipeFilterPanel {
+        /**
+          * Available cuisines/areas. Accepts an array or a JSON string.
+         */
+        "areas"?: string[] | string;
+        /**
+          * Available categories. Accepts an array or a JSON string.
+         */
+        "categories"?: string[] | string;
+        /**
+          * Hides the "Clear all" button when the consumer handles resets elsewhere.
+          * @default false
+         */
+        "hideClear"?: boolean;
+        /**
+          * Emitted with the full next filter state whenever any control changes.
+         */
+        "onFilterChange"?: (event: RecipeFilterPanelCustomEvent<RecipeFilters>) => void;
+        /**
+          * Emitted when "Clear all" is pressed, alongside an empty `filterChange`.
+         */
+        "onFilterClear"?: (event: RecipeFilterPanelCustomEvent<void>) => void;
+        /**
+          * Currently active filters. Accepts an object or a JSON string.
+         */
+        "selected"?: RecipeFilters | string;
+    }
+    /**
+     * A star rating, usable either as a read-only display or an input.
+     * When `readonly` is false the stars form a radio group so keyboard users can
+     * pick a value with arrow keys, matching native radio semantics.
+     */
+    interface RecipeRating {
+        /**
+          * Accessible label for the group.
+          * @default 'Rating'
+         */
+        "label"?: string;
+        /**
+          * Number of stars to render.
+          * @default 5
+         */
+        "max"?: number;
+        /**
+          * Emitted when the user picks a rating. Never fires while `readonly`.
+         */
+        "onRate"?: (event: RecipeRatingCustomEvent<{ value: number }>) => void;
+        /**
+          * When true the stars are display-only and emit nothing.
+          * @default false
+         */
+        "readonly"?: boolean;
+        /**
+          * Current rating. Clamped to `0..max`.
+          * @default 0
+         */
+        "value"?: number;
+    }
+    /**
+     * A debounced search input for recipe queries.
+     * Keystrokes are coalesced so a consumer can wire `searchChange` straight to an
+     * API call without throttling on their side. Submitting the form (Enter) or
+     * pressing the search button flushes immediately.
+     */
+    interface RecipeSearchBar {
+        /**
+          * Milliseconds to wait after the last keystroke before emitting.
+          * @default 300
+         */
+        "debounceMs"?: number;
+        /**
+          * Accessible label for the input, used when no visible label is present.
+          * @default 'Search recipes'
+         */
+        "label"?: string;
+        /**
+          * Emitted after the debounce interval, or immediately on submit.
+         */
+        "onSearchChange"?: (event: RecipeSearchBarCustomEvent<{ query: string }>) => void;
+        /**
+          * Emitted when the clear button empties a non-empty query.
+         */
+        "onSearchClear"?: (event: RecipeSearchBarCustomEvent<void>) => void;
+        /**
+          * Placeholder text for the input.
+          * @default 'Search recipes…'
+         */
+        "placeholder"?: string;
+        /**
+          * Current query. Treated as the initial value and on external resets.
+          * @default ''
+         */
+        "value"?: string;
     }
 
-    interface MyComponentAttributes {
-        "first": string;
-        "middle": string;
-        "last": string;
+    interface MealPlanDayAttributes {
+        "day": string;
+        "meals": PlannedMeal[] | string;
+        "isToday": boolean;
+        "addLabel": string;
+    }
+    interface RecipeCardAttributes {
+        "recipe": Recipe | string;
+        "isFavorite": boolean;
+        "compact": boolean;
+    }
+    interface RecipeFilterPanelAttributes {
+        "categories": string[] | string;
+        "areas": string[] | string;
+        "selected": RecipeFilters | string;
+        "hideClear": boolean;
+    }
+    interface RecipeRatingAttributes {
+        "value": number;
+        "max": number;
+        "readonly": boolean;
+        "label": string;
+    }
+    interface RecipeSearchBarAttributes {
+        "value": string;
+        "placeholder": string;
+        "debounceMs": number;
+        "label": string;
     }
 
     interface IntrinsicElements {
-        "my-component": Omit<MyComponent, keyof MyComponentAttributes> & { [K in keyof MyComponent & keyof MyComponentAttributes]?: MyComponent[K] } & { [K in keyof MyComponent & keyof MyComponentAttributes as `attr:${K}`]?: MyComponentAttributes[K] } & { [K in keyof MyComponent & keyof MyComponentAttributes as `prop:${K}`]?: MyComponent[K] };
+        "meal-plan-day": Omit<MealPlanDay, keyof MealPlanDayAttributes> & { [K in keyof MealPlanDay & keyof MealPlanDayAttributes]?: MealPlanDay[K] } & { [K in keyof MealPlanDay & keyof MealPlanDayAttributes as `attr:${K}`]?: MealPlanDayAttributes[K] } & { [K in keyof MealPlanDay & keyof MealPlanDayAttributes as `prop:${K}`]?: MealPlanDay[K] } & OneOf<"day", MealPlanDay["day"], MealPlanDayAttributes["day"]>;
+        "recipe-card": Omit<RecipeCard, keyof RecipeCardAttributes> & { [K in keyof RecipeCard & keyof RecipeCardAttributes]?: RecipeCard[K] } & { [K in keyof RecipeCard & keyof RecipeCardAttributes as `attr:${K}`]?: RecipeCardAttributes[K] } & { [K in keyof RecipeCard & keyof RecipeCardAttributes as `prop:${K}`]?: RecipeCard[K] };
+        "recipe-filter-panel": Omit<RecipeFilterPanel, keyof RecipeFilterPanelAttributes> & { [K in keyof RecipeFilterPanel & keyof RecipeFilterPanelAttributes]?: RecipeFilterPanel[K] } & { [K in keyof RecipeFilterPanel & keyof RecipeFilterPanelAttributes as `attr:${K}`]?: RecipeFilterPanelAttributes[K] } & { [K in keyof RecipeFilterPanel & keyof RecipeFilterPanelAttributes as `prop:${K}`]?: RecipeFilterPanel[K] };
+        "recipe-rating": Omit<RecipeRating, keyof RecipeRatingAttributes> & { [K in keyof RecipeRating & keyof RecipeRatingAttributes]?: RecipeRating[K] } & { [K in keyof RecipeRating & keyof RecipeRatingAttributes as `attr:${K}`]?: RecipeRatingAttributes[K] } & { [K in keyof RecipeRating & keyof RecipeRatingAttributes as `prop:${K}`]?: RecipeRating[K] };
+        "recipe-search-bar": Omit<RecipeSearchBar, keyof RecipeSearchBarAttributes> & { [K in keyof RecipeSearchBar & keyof RecipeSearchBarAttributes]?: RecipeSearchBar[K] } & { [K in keyof RecipeSearchBar & keyof RecipeSearchBarAttributes as `attr:${K}`]?: RecipeSearchBarAttributes[K] } & { [K in keyof RecipeSearchBar & keyof RecipeSearchBarAttributes as `prop:${K}`]?: RecipeSearchBar[K] };
     }
 }
 export { LocalJSX as JSX };
 declare module "@stencil/core" {
     export namespace JSX {
         interface IntrinsicElements {
-            "my-component": LocalJSX.IntrinsicElements["my-component"] & JSXBase.HTMLAttributes<HTMLMyComponentElement>;
+            /**
+             * One day column of the weekly meal plan, with a breakfast/lunch/dinner slot.
+             * Each empty slot is a drop target and a click target, so a consumer can wire
+             * either drag-and-drop or a picker dialog off the same `addMealRequest` event.
+             */
+            "meal-plan-day": LocalJSX.IntrinsicElements["meal-plan-day"] & JSXBase.HTMLAttributes<HTMLMealPlanDayElement>;
+            /**
+             * A single recipe tile: image, title, category/area meta, and a favorite toggle.
+             */
+            "recipe-card": LocalJSX.IntrinsicElements["recipe-card"] & JSXBase.HTMLAttributes<HTMLRecipeCardElement>;
+            /**
+             * Category and cuisine filters for the recipe list.
+             * Fully controlled: the component never holds selection state of its own. It
+             * emits `filterChange` with the complete next filter object, so the consumer's
+             * store stays the single source of truth.
+             */
+            "recipe-filter-panel": LocalJSX.IntrinsicElements["recipe-filter-panel"] & JSXBase.HTMLAttributes<HTMLRecipeFilterPanelElement>;
+            /**
+             * A star rating, usable either as a read-only display or an input.
+             * When `readonly` is false the stars form a radio group so keyboard users can
+             * pick a value with arrow keys, matching native radio semantics.
+             */
+            "recipe-rating": LocalJSX.IntrinsicElements["recipe-rating"] & JSXBase.HTMLAttributes<HTMLRecipeRatingElement>;
+            /**
+             * A debounced search input for recipe queries.
+             * Keystrokes are coalesced so a consumer can wire `searchChange` straight to an
+             * API call without throttling on their side. Submitting the form (Enter) or
+             * pressing the search button flushes immediately.
+             */
+            "recipe-search-bar": LocalJSX.IntrinsicElements["recipe-search-bar"] & JSXBase.HTMLAttributes<HTMLRecipeSearchBarElement>;
         }
     }
 }

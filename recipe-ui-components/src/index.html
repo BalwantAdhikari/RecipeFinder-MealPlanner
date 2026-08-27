@@ -3,12 +3,232 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0, minimum-scale=1.0, maximum-scale=5.0" />
-    <title>Stencil Component Starter</title>
+    <title>recipe-ui-components — dev sandbox</title>
 
     <script type="module" src="/build/recipe-ui-components.esm.js"></script>
     <script nomodule src="/build/recipe-ui-components.js"></script>
+
+    <style>
+      body {
+        margin: 0;
+        padding: 2rem;
+        font-family: system-ui, -apple-system, sans-serif;
+        line-height: 1.5;
+      }
+      h1 {
+        font-size: 1.25rem;
+      }
+      h2 {
+        margin-top: 2.5rem;
+        font-size: 0.75rem;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #71717a;
+      }
+      .grid {
+        display: grid;
+        gap: 1rem;
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      }
+      .week {
+        display: grid;
+        gap: 0.75rem;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      }
+      #log {
+        max-height: 12rem;
+        margin-top: 0.5rem;
+        padding: 0.75rem;
+        overflow-y: auto;
+        font-family: ui-monospace, monospace;
+        font-size: 0.75rem;
+        background: #18181b;
+        color: #a1a1aa;
+        border-radius: 8px;
+      }
+      #log div {
+        white-space: pre-wrap;
+      }
+      [draggable='true'] {
+        cursor: grab;
+      }
+    </style>
   </head>
   <body>
-    <my-component first="Stencil" middle="'Don't call me a framework'" last="JS"></my-component>
+    <h1>recipe-ui-components — dev sandbox</h1>
+    <p>Every emitted event is appended to the log at the bottom.</p>
+
+    <h2>recipe-search-bar</h2>
+    <recipe-search-bar id="search" placeholder="Try &quot;chicken&quot;…"></recipe-search-bar>
+
+    <h2>recipe-filter-panel</h2>
+    <recipe-filter-panel id="filters"></recipe-filter-panel>
+
+    <h2>recipe-card (drag a card onto a meal slot)</h2>
+    <div class="grid" id="cards"></div>
+
+    <h2>recipe-rating</h2>
+    <recipe-rating id="rating" value="3"></recipe-rating>
+    <recipe-rating value="4" readonly><span>(128 reviews)</span></recipe-rating>
+
+    <h2>meal-plan-day</h2>
+    <div class="week" id="week"></div>
+
+    <h2>Event log</h2>
+    <div id="log"></div>
+
+    <script type="module">
+      const RECIPES = [
+        {
+          id: '52772',
+          title: 'Teriyaki Chicken Casserole',
+          image: 'https://www.themealdb.com/images/media/meals/wvpsxx1468256321.jpg',
+          category: 'Chicken',
+          area: 'Japanese',
+          source: 'api',
+        },
+        {
+          id: '52771',
+          title: 'Spicy Arrabiata Penne',
+          image: 'https://www.themealdb.com/images/media/meals/ustsqw1468250014.jpg',
+          category: 'Vegetarian',
+          area: 'Italian',
+          source: 'api',
+        },
+        {
+          id: 'user-1',
+          title: 'Grandma’s Lentil Soup (no image)',
+          category: 'Soup',
+          area: 'Indian',
+          source: 'user',
+        },
+      ];
+
+      const DAYS = ['Monday', 'Tuesday', 'Wednesday'];
+
+      const log = (label, detail) => {
+        const line = document.createElement('div');
+        line.textContent = `${label} → ${JSON.stringify(detail)}`;
+        const el = document.getElementById('log');
+        el.prepend(line);
+      };
+
+      // --- state -------------------------------------------------------------
+      const favorites = new Set(['52771']);
+      let plan = [
+        { day: 'Monday', slot: 'dinner', recipeId: '52772', title: 'Teriyaki Chicken Casserole' },
+      ];
+
+      // --- search + filters --------------------------------------------------
+      const search = document.getElementById('search');
+      search.addEventListener('searchChange', e => log('searchChange', e.detail));
+      search.addEventListener('searchClear', () => log('searchClear', null));
+
+      const filters = document.getElementById('filters');
+      // Object props are set as DOM properties, the same way SvelteKit will.
+      filters.categories = ['Chicken', 'Vegetarian', 'Soup', 'Dessert'];
+      filters.areas = ['Japanese', 'Italian', 'Indian'];
+      filters.selected = {};
+      filters.addEventListener('filterChange', e => {
+        filters.selected = e.detail;
+        log('filterChange', e.detail);
+      });
+      filters.addEventListener('filterClear', () => log('filterClear', null));
+
+      // --- cards -------------------------------------------------------------
+      const cardsEl = document.getElementById('cards');
+
+      function renderCards() {
+        cardsEl.replaceChildren();
+        for (const recipe of RECIPES) {
+          const card = document.createElement('recipe-card');
+          card.recipe = recipe;
+          card.isFavorite = favorites.has(recipe.id);
+
+          // Make the card a drag source for the meal planner.
+          card.draggable = true;
+          card.addEventListener('dragstart', e => e.dataTransfer.setData('text/plain', recipe.id));
+
+          // Slot content: badge overlay + an extra footer action.
+          const badge = document.createElement('span');
+          badge.slot = 'badge';
+          badge.textContent = recipe.source === 'user' ? '✎ mine' : 'API';
+          badge.style.cssText =
+            'background:#18181b;color:#fff;font-size:.625rem;padding:.125rem .375rem;border-radius:999px';
+
+          const action = document.createElement('button');
+          action.slot = 'actions';
+          action.textContent = 'Add to plan';
+          action.onclick = () => log('slotted action click', { recipeId: recipe.id });
+
+          card.append(badge, action);
+
+          card.addEventListener('favoriteToggle', e => {
+            const { recipeId, isFavorite } = e.detail;
+            if (isFavorite) favorites.add(recipeId);
+            else favorites.delete(recipeId);
+            log('favoriteToggle', e.detail);
+            renderCards();
+          });
+          card.addEventListener('viewDetails', e => log('viewDetails', e.detail));
+
+          cardsEl.append(card);
+        }
+      }
+
+      // --- rating ------------------------------------------------------------
+      const rating = document.getElementById('rating');
+      rating.addEventListener('rate', e => {
+        rating.value = e.detail.value;
+        log('rate', e.detail);
+      });
+
+      // --- week --------------------------------------------------------------
+      const weekEl = document.getElementById('week');
+
+      function renderWeek() {
+        weekEl.replaceChildren();
+        DAYS.forEach((day, index) => {
+          const col = document.createElement('meal-plan-day');
+          col.day = day;
+          col.meals = plan.filter(meal => meal.day === day);
+          col.isToday = index === 0;
+
+          const footer = document.createElement('small');
+          footer.slot = 'footer';
+          footer.textContent = `${col.meals.length}/3 planned`;
+          footer.style.cssText = 'color:#71717a;font-size:.6875rem';
+          col.append(footer);
+
+          col.addEventListener('addMealRequest', e => log('addMealRequest', e.detail));
+          col.addEventListener('removeMeal', e => {
+            plan = plan.filter(
+              m => !(m.day === e.detail.day && m.slot === e.detail.slot),
+            );
+            log('removeMeal', e.detail);
+            renderWeek();
+          });
+          col.addEventListener('mealDrop', e => {
+            const recipe = RECIPES.find(r => r.id === e.detail.recipeId);
+            if (!recipe) return;
+            plan = plan.filter(m => !(m.day === e.detail.day && m.slot === e.detail.slot));
+            plan.push({
+              day: e.detail.day,
+              slot: e.detail.slot,
+              recipeId: recipe.id,
+              title: recipe.title,
+              image: recipe.image,
+            });
+            log('mealDrop', e.detail);
+            renderWeek();
+          });
+
+          weekEl.append(col);
+        });
+      }
+
+      renderCards();
+      renderWeek();
+    </script>
   </body>
 </html>

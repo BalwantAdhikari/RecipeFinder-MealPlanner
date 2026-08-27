@@ -15,7 +15,8 @@ Track progress by checking boxes. Suggested build order is at the bottom.
 | Repo layout | Monorepo-ish: `/recipe-ui-components` + `/recipe-app` as sibling roots | Two independent `package.json` files; no workspace tooling needed since the app installs the library from npm, not from disk. |
 | Persistence | `localStorage` | No backend in scope. Applies to favorites, user-created recipes, and the meal plan. |
 | State | Svelte 5 runes in `.svelte.ts` modules | Idiomatic Svelte 5; avoids legacy store contract. |
-| npm package name | `@<npm-username>/recipe-ui` — **username still needed** | Scoped guarantees availability. Current name `recipe-ui-components` is unscoped and generic. |
+| npm package name | `recipe-ui-components`, unscoped | Confirmed available on registry.npmjs.org, so no scope is required. Sidesteps needing a scope tied to a personal account. |
+| npm registry | Project-local `.npmrc` pins `registry.npmjs.org` | The machine default is a corporate Artifactory. This project must not publish or install through it. Publishing needs a personal npm login. |
 | Git | Single root repo; the nested `create-stencil` `.git` was removed | Assignment asks for one GitHub repository link. |
 
 ---
@@ -29,48 +30,94 @@ Track progress by checking boxes. Suggested build order is at the bottom.
 
 ---
 
-## Phase 1 — Stencil component library
+## Phase 1 — Stencil component library ✅
 
-- [ ] **1.1** Fix `package.json`: scoped name, `version` → `0.1.0`, real `description`, correct
-      `repository`, and rewrite `exports` (currently still references `stenciljs/component-starter`
-      and `./my-component`)
-- [ ] **1.2** `stencil.config.ts`: add `dist` + `dist-custom-elements` output targets with
-      `customElementsExportBehavior: 'auto-define-custom-elements'`
-- [ ] **1.3** Delete the starter `my-component`
-- [ ] **1.4** Build the components below
-- [ ] **1.5** Tests covering each component's props/events contract
-- [ ] **1.6** JSDoc on every `@Prop`/`@Event` so Stencil auto-generates `readme.md`
-- [ ] **1.7** Library README with props/events/slots tables
+- [x] **1.1** `package.json`: kept the name `recipe-ui-components` (verified **available** on the
+      public registry, so no scope needed), `version` → `0.1.0`, real description/keywords/author,
+      dropped the wrong `repository`, added `publishConfig`. **Fixed two broken `exports` paths
+      inherited from the starter** — `dist/recipe-ui-components/recipe-ui-components.cjs.js` and
+      `loader/index.cjs` do not exist; CJS consumers would have failed to resolve the package.
+- [x] **1.2** `stencil.config.ts` already had `dist` + `dist-custom-elements` with
+      `auto-define-custom-elements` and `docs-readme`. Verified, namespace left as-is since it
+      matches the package name and dist paths.
+- [x] **1.3** Starter `my-component` deleted
+- [x] **1.4** Five components built (see table below)
+- [~] **1.5** 49 component test cases written and type-checking against the real API, **but not yet
+      executed** — see "Blocked" below. 9 helper unit tests pass.
+- [x] **1.6** JSDoc on every `@Prop`/`@Event`/`@slot`/`@part`; Stencil generates per-component
+      `readme.md` with full props/events/slots/parts tables
+- [x] **1.7** Library README with usage, integration notes, per-component tables, theming
+- [x] **1.8** `src/index.html` dev sandbox rewritten to exercise all five components, object props,
+      slots, drag-and-drop and an event log (`npm start`)
+- [x] **1.9** Project-local `.npmrc` pinning the public registry, since the machine default points
+      at a private corporate Artifactory
 
-### Components
+### Blocked: browser test execution
 
-Each must exercise **props, `@Event`, and slots** — the assignment grades all three explicitly.
+The `browser` Vitest project needs real Chromium. The binary is installed, but it will not launch
+on this WSL box:
 
-| Component | Props | Events | Slots |
-|---|---|---|---|
-| `recipe-card` | `recipe`, `isFavorite` | `favoriteToggle`, `viewDetails` | `actions` (footer) |
-| `recipe-search-bar` | `value`, `placeholder` | `searchChange` (debounced) | — |
-| `recipe-filter-panel` | `categories`, `areas`, `selected` | `filterChange` | extra controls |
-| `meal-plan-day` | `day`, `meals` | `removeMeal`, `addMealRequest` | empty-state content |
-| `recipe-rating` / `ui-badge` | `value`, `variant` | `rate` | default |
+```
+error while loading shared libraries: libasound.so.2: cannot open shared object file
+```
+
+Fix requires root:
+
+```bash
+sudo npx playwright install-deps chromium
+npx vitest run --project browser
+```
+
+Stencil's mock DOM is **not** a workaround: `render()`'s real options type has no `props`/`slots`,
+and `DragEvent`/`DataTransfer` are undefined there. Confirmed empirically — all 49 cases fail.
+
+### Components as built
+
+Each exercises **props, `@Event`, and slots** — the assignment grades all three explicitly.
+
+| Component | Props | Events | Slots | Parts |
+|---|---|---|---|---|
+| `recipe-card` | `recipe`, `isFavorite`, `compact` | `favoriteToggle`, `viewDetails` | `actions`, `badge` | `card`, `image`, `title` |
+| `recipe-search-bar` | `value`, `placeholder`, `debounceMs`, `label` | `searchChange`, `searchClear` | `filters` | `field`, `submit` |
+| `recipe-filter-panel` | `categories`, `areas`, `selected`, `hideClear` | `filterChange`, `filterClear` | default | `panel`, `select` |
+| `meal-plan-day` | `day`, `meals`, `isToday`, `addLabel` | `removeMeal`, `addMealRequest`, `mealDrop` | `footer` | `day`, `slot` |
+| `recipe-rating` | `value`, `max`, `readonly`, `label` | `rate` | default | `rating`, `star` |
+
+`recipe-search-bar` also exposes a `setFocus()` public `@Method`.
+
+Design decisions worth noting:
+
+- **Every object/array prop accepts a JSON string too**, via `parseObjectProp`/`parseArrayProp`.
+  This pre-solves integration task 6.1: it does not matter whether SvelteKit sets a DOM property or
+  only an attribute. Malformed JSON degrades to an empty state rather than throwing.
+- **`recipe-filter-panel` is fully controlled** — it holds no selection state, and emits the
+  complete next filter object with empty values stripped.
+- **`recipe-card` emits the requested next favorite state**, not a bare toggle, so the consumer's
+  store stays authoritative.
+- A named slot inside a repeated list does not work (only the first instance receives projected
+  content), so `meal-plan-day`'s empty slots use an `addLabel` prop rather than a slot.
 
 ---
 
 ## Phase 2 — npm publish
 
-- [ ] **2.1** `npm login`; verify the scope is available/owned
-- [ ] **2.2** `npm pack` and inspect the tarball — confirm `files`, `main`, `module`, `types`, and
-      every `exports` subpath actually resolve
-- [ ] **2.3** `npm publish --access public` (**required** — scoped packages default to private)
+- [ ] **2.1** `npm login --registry=https://registry.npmjs.org/` with a **personal** account.
+      Do not publish under corporate credentials. Re-confirm `recipe-ui-components` is still
+      unclaimed at publish time.
+- [x] **2.2** Every `exports`, `main`, `module`, `types`, `collection` and `unpkg` path verified to
+      resolve against a real build. Two broken starter paths fixed in 1.1.
+- [ ] **2.3** `npm publish`. `publishConfig.access: public` is already set in `package.json`.
 - [ ] **2.4** Semver discipline: `0.1.0` initial, minor bump per new component, patch per fix.
       Maintain `CHANGELOG.md`
+- [ ] **2.5** Add the GitHub repo URL to `package.json` `repository` once the remote exists (0.2).
+      Removed for now rather than left pointing at the starter template.
 
 ---
 
 ## Phase 3 — SvelteKit app skeleton
 
 - [ ] **3.1** `npx sv create recipe-app` — Svelte 5, TypeScript, ESLint + Prettier
-- [ ] **3.2** `npm i @<npm-username>/recipe-ui` **from the npm registry** — not `file:` or `link:`.
+- [ ] **3.2** `npm i recipe-ui-components` **from the npm registry** — not `file:` or `link:`.
       The assignment forbids importing components from source.
 - [ ] **3.3** Register custom elements client-side only in `+layout.svelte`:
       `onMount(() => defineCustomElements())`. SSR throws on `HTMLElement` otherwise.
