@@ -38,7 +38,9 @@
   },
   "files": [
     "dist/",
-    "loader/"
+    "loader/",
+    "!dist/**/*.test.*",
+    "!dist/**/*.spec.*"
   ],
   "publishConfig": {
     "access": "public",
