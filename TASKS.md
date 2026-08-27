@@ -15,16 +15,17 @@ Track progress by checking boxes. Suggested build order is at the bottom.
 | Repo layout | Monorepo-ish: `/recipe-ui-components` + `/recipe-app` as sibling roots | Two independent `package.json` files; no workspace tooling needed since the app installs the library from npm, not from disk. |
 | Persistence | `localStorage` | No backend in scope. Applies to favorites, user-created recipes, and the meal plan. |
 | State | Svelte 5 runes in `.svelte.ts` modules | Idiomatic Svelte 5; avoids legacy store contract. |
-| npm package name | `@<scope>/recipe-ui` (scope TBD — must be one you own) | Current name `recipe-ui-components` is unscoped and generic. |
+| npm package name | `@<npm-username>/recipe-ui` — **username still needed** | Scoped guarantees availability. Current name `recipe-ui-components` is unscoped and generic. |
+| Git | Single root repo; the nested `create-stencil` `.git` was removed | Assignment asks for one GitHub repository link. |
 
 ---
 
-## Phase 0 — Foundations
+## Phase 0 — Foundations ✅
 
-- [ ] **0.1** `git init` at root, add `.gitignore`, initial commit
-- [ ] **0.2** Create GitHub repo and push (repo link is a deliverable)
-- [ ] **0.3** Confirm `/recipe-ui-components` + `/recipe-app` sibling layout
-- [ ] **0.4** Remove stray root scratch files (`index.html`, `tooltip.js` — leftover web-components tutorial code)
+- [x] **0.1** `git init` at root, add `.gitignore`, initial commit (`829e7f0`, branch `main`)
+- [ ] **0.2** Create GitHub repo and push (repo link is a deliverable) — *deferred, doing manually*
+- [x] **0.3** Confirmed `/recipe-ui-components` + `/recipe-app` sibling layout
+- [x] **0.4** Stray root scratch files (`index.html`, `tooltip.js`) removed
 
 ---
 
@@ -69,7 +70,7 @@ Each must exercise **props, `@Event`, and slots** — the assignment grades all 
 ## Phase 3 — SvelteKit app skeleton
 
 - [ ] **3.1** `npx sv create recipe-app` — Svelte 5, TypeScript, ESLint + Prettier
-- [ ] **3.2** `npm i @<scope>/recipe-ui` **from the npm registry** — not `file:` or `link:`.
+- [ ] **3.2** `npm i @<npm-username>/recipe-ui` **from the npm registry** — not `file:` or `link:`.
       The assignment forbids importing components from source.
 - [ ] **3.3** Register custom elements client-side only in `+layout.svelte`:
       `onMount(() => defineCustomElements())`. SSR throws on `HTMLElement` otherwise.
