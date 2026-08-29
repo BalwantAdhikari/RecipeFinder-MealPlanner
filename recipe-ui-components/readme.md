@@ -17,10 +17,13 @@ npm install recipe-ui-components
 
 ## Usage
 
-### Register every element via the loader
+### Register the elements (bundler apps: Vite, SvelteKit, webpack)
 
-The simplest route. In SvelteKit this must run client-side only, because custom element
-registration touches `HTMLElement`, which does not exist during SSR:
+Import the per-component modules from `components/*`. Each is self-contained and
+self-defining, so importing it registers the element.
+
+Registration calls `customElements.define`, which throws during SSR, so this has to run
+client-side only:
 
 ```svelte
 <!-- src/routes/+layout.svelte -->
@@ -28,18 +31,31 @@ registration touches `HTMLElement`, which does not exist during SSR:
   import { onMount } from 'svelte';
 
   onMount(async () => {
-    const { defineCustomElements } = await import('recipe-ui-components/loader');
-    await defineCustomElements();
+    await Promise.all([
+      import('recipe-ui-components/components/recipe-card'),
+      import('recipe-ui-components/components/recipe-search-bar'),
+      import('recipe-ui-components/components/recipe-filter-panel'),
+      import('recipe-ui-components/components/meal-plan-day'),
+      import('recipe-ui-components/components/recipe-rating')
+    ]);
   });
 </script>
 ```
 
-### Or import a single element
+> **Do not use `recipe-ui-components/loader` in a bundled app.** The loader is the lazy
+> build: it fetches per-component `*.entry.js` chunks at runtime from a path resolved at
+> load time. Bundlers pre-bundle the loader itself but cannot see those runtime chunks, so
+> they 404 and every component fails to render with
+> `Constructor for "recipe-card#undefined" was not found`. Confirmed against Vite 8 /
+> SvelteKit 2.
 
-Tree-shakeable; registers itself on import.
+### Register every element via the loader (script tags / no bundler)
 
-```ts
-import 'recipe-ui-components/components/recipe-card';
+The lazy build is the right choice when you serve the package as static assets rather than
+bundling it — one small entry file, components fetched on demand:
+
+```html
+<script type="module" src="/node_modules/recipe-ui-components/dist/recipe-ui-components/recipe-ui-components.esm.js"></script>
 ```
 
 ### Types
@@ -65,51 +81,106 @@ Malformed JSON degrades to the component's empty state rather than throwing.
 
 ## Handling events out
 
-These are native `CustomEvent`s. Their names are camelCase, which Svelte's `on<name>` shorthand
-does not cover, so bind with `on:` or `addEventListener`:
+These are native `CustomEvent`s with camelCase names. Svelte 5's `onclick`-style shorthand
+only covers known DOM events, so `onfavoriteToggle` does not exist, and the `on:` directive
+is deprecated. Use `addEventListener` — a small action keeps it tidy and handles teardown:
+
+```ts
+// src/lib/stencil.ts
+export function on(node: HTMLElement, handlers: Record<string, (e: CustomEvent) => void>) {
+  let current = handlers;
+  const bind = m => Object.entries(m).forEach(([k, f]) => node.addEventListener(k, f));
+  const unbind = m => Object.entries(m).forEach(([k, f]) => node.removeEventListener(k, f));
+  bind(current);
+  return {
+    update(next) {
+      unbind(current);
+      current = next;
+      bind(current);
+    },
+    destroy() {
+      unbind(current);
+    },
+  };
+}
+```
 
 ```svelte
 <recipe-card
-  recipe={JSON.stringify(recipe)}
-  is-favorite={isFavorite}
-  on:favoriteToggle={(e) => toggleFavorite(e.detail.recipeId, e.detail.isFavorite)}
-  on:viewDetails={(e) => goto(`/recipes/${e.detail.recipeId}`)}
+  use:props={{ recipe, isFavorite }}
+  use:on={{
+    favoriteToggle: (e) => toggleFavorite(e.detail.recipeId, e.detail.isFavorite),
+    viewDetails: (e) => goto(`/recipes/${e.detail.recipeId}`)
+  }}
 >
+  <span slot="badge">API</span>
   <button slot="actions" onclick={addToPlan}>Add to plan</button>
 </recipe-card>
+```
+
+### Setting object props safely
+
+A companion `props` action assigns DOM properties instead of attributes. One ordering
+subtlety matters: in SvelteKit a child's actions run **before** the parent layout's
+`onMount`, so the element is usually not upgraded yet when the action first fires.
+Assigning then creates own properties that shadow the accessors Stencil installs during
+upgrade, and the component renders as if no props were passed. Wait for the definition:
+
+```ts
+export function props(node: HTMLElement, values: Record<string, unknown>) {
+  let current = values,
+    ready = false;
+  const apply = () => Object.entries(current).forEach(([k, v]) => (node[k] = v));
+  const tag = node.localName;
+  if (tag.includes('-') && !customElements.get(tag)) {
+    customElements.whenDefined(tag).then(() => {
+      ready = true;
+      apply();
+    });
+  } else {
+    ready = true;
+    apply();
+  }
+  return {
+    update(next) {
+      current = next;
+      if (ready) apply();
+    },
+  };
+}
 ```
 
 ## Components
 
 ### `<recipe-card>`
 
-| Prop | Attribute | Type | Default | Notes |
-|---|---|---|---|---|
-| `recipe` | `recipe` | `Recipe \| string` | — | Object or JSON string |
-| `isFavorite` | `is-favorite` | `boolean` | `false` | |
-| `compact` | `compact` | `boolean` | `false` | Hides the meta row |
+| Prop         | Attribute     | Type               | Default | Notes                 |
+| ------------ | ------------- | ------------------ | ------- | --------------------- |
+| `recipe`     | `recipe`      | `Recipe \| string` | —       | Object or JSON string |
+| `isFavorite` | `is-favorite` | `boolean`          | `false` |                       |
+| `compact`    | `compact`     | `boolean`          | `false` | Hides the meta row    |
 
-| Event | Detail |
-|---|---|
-| `favoriteToggle` | `{ recipeId: string; isFavorite: boolean }` — the *requested* next state |
-| `viewDetails` | `{ recipeId: string }` |
+| Event            | Detail                                                                   |
+| ---------------- | ------------------------------------------------------------------------ |
+| `favoriteToggle` | `{ recipeId: string; isFavorite: boolean }` — the _requested_ next state |
+| `viewDetails`    | `{ recipeId: string }`                                                   |
 
 Slots: `actions` (footer controls), `badge` (image overlay).
 Parts: `card`, `image`, `title`.
 
 ### `<recipe-search-bar>`
 
-| Prop | Attribute | Type | Default |
-|---|---|---|---|
-| `value` | `value` | `string` | `''` |
+| Prop          | Attribute     | Type     | Default             |
+| ------------- | ------------- | -------- | ------------------- |
+| `value`       | `value`       | `string` | `''`                |
 | `placeholder` | `placeholder` | `string` | `'Search recipes…'` |
-| `debounceMs` | `debounce-ms` | `number` | `300` |
-| `label` | `label` | `string` | `'Search recipes'` |
+| `debounceMs`  | `debounce-ms` | `number` | `300`               |
+| `label`       | `label`       | `string` | `'Search recipes'`  |
 
-| Event | Detail |
-|---|---|
+| Event          | Detail                                                  |
+| -------------- | ------------------------------------------------------- |
 | `searchChange` | `{ query: string }` — debounced, or immediate on submit |
-| `searchClear` | `void` |
+| `searchClear`  | `void`                                                  |
 
 Method: `setFocus(): Promise<void>`.
 Slot: `filters`. Parts: `field`, `submit`.
@@ -120,17 +191,17 @@ Submitting the form flushes the pending debounce instead of waiting it out.
 
 Fully controlled — holds no selection state of its own.
 
-| Prop | Attribute | Type | Default |
-|---|---|---|---|
-| `categories` | `categories` | `string[] \| string` | — |
-| `areas` | `areas` | `string[] \| string` | — |
-| `selected` | `selected` | `RecipeFilters \| string` | `{}` |
-| `hideClear` | `hide-clear` | `boolean` | `false` |
+| Prop         | Attribute    | Type                      | Default |
+| ------------ | ------------ | ------------------------- | ------- |
+| `categories` | `categories` | `string[] \| string`      | —       |
+| `areas`      | `areas`      | `string[] \| string`      | —       |
+| `selected`   | `selected`   | `RecipeFilters \| string` | `{}`    |
+| `hideClear`  | `hide-clear` | `boolean`                 | `false` |
 
-| Event | Detail |
-|---|---|
+| Event          | Detail                                                                |
+| -------------- | --------------------------------------------------------------------- |
 | `filterChange` | `RecipeFilters` — the complete next state, with empty values stripped |
-| `filterClear` | `void` |
+| `filterClear`  | `void`                                                                |
 
 A select is omitted entirely when its option list is empty. Slot: default. Parts: `panel`, `select`.
 
@@ -139,18 +210,18 @@ A select is omitted entirely when its option list is empty. Slot: default. Parts
 One day column with `breakfast` / `lunch` / `dinner` slots. Empty slots are both click targets and
 drop targets, so drag-and-drop and a picker dialog can coexist.
 
-| Prop | Attribute | Type | Default |
-|---|---|---|---|
-| `day` | `day` | `string` | — (required) |
-| `meals` | `meals` | `PlannedMeal[] \| string` | `[]` |
-| `isToday` | `is-today` | `boolean` | `false` |
-| `addLabel` | `add-label` | `string` | `'+ Add'` |
+| Prop       | Attribute   | Type                      | Default      |
+| ---------- | ----------- | ------------------------- | ------------ |
+| `day`      | `day`       | `string`                  | — (required) |
+| `meals`    | `meals`     | `PlannedMeal[] \| string` | `[]`         |
+| `isToday`  | `is-today`  | `boolean`                 | `false`      |
+| `addLabel` | `add-label` | `string`                  | `'+ Add'`    |
 
-| Event | Detail |
-|---|---|
-| `removeMeal` | `{ day: string; slot: MealSlot; recipeId: string }` |
-| `addMealRequest` | `{ day: string; slot: MealSlot }` |
-| `mealDrop` | `{ day: string; slot: MealSlot; recipeId: string }` |
+| Event            | Detail                                              |
+| ---------------- | --------------------------------------------------- |
+| `removeMeal`     | `{ day: string; slot: MealSlot; recipeId: string }` |
+| `addMealRequest` | `{ day: string; slot: MealSlot }`                   |
+| `mealDrop`       | `{ day: string; slot: MealSlot; recipeId: string }` |
 
 For `mealDrop` to fire, the drag source must set the recipe id on the dataTransfer:
 
@@ -162,15 +233,15 @@ Slot: `footer`. Parts: `day`, `slot`.
 
 ### `<recipe-rating>`
 
-| Prop | Attribute | Type | Default |
-|---|---|---|---|
-| `value` | `value` | `number` | `0` | 
-| `max` | `max` | `number` | `5` |
-| `readonly` | `readonly` | `boolean` | `false` |
-| `label` | `label` | `string` | `'Rating'` |
+| Prop       | Attribute  | Type      | Default    |
+| ---------- | ---------- | --------- | ---------- |
+| `value`    | `value`    | `number`  | `0`        |
+| `max`      | `max`      | `number`  | `5`        |
+| `readonly` | `readonly` | `boolean` | `false`    |
+| `label`    | `label`    | `string`  | `'Rating'` |
 
-| Event | Detail |
-|---|---|
+| Event  | Detail                                             |
+| ------ | -------------------------------------------------- |
 | `rate` | `{ value: number }` — never fires while `readonly` |
 
 `value` is clamped to `0..max`. Renders a `radiogroup` of buttons when interactive and an inert

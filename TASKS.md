@@ -138,6 +138,10 @@ Design decisions worth noting:
 - [x] **2.3** Published. Required **2FA** — see gotcha below.
 - [ ] **2.4** Semver discipline: `0.1.0` initial, minor bump per new component, patch per fix.
       Maintain `CHANGELOG.md`
+- [ ] **2.7** **Publish `0.1.1`** — the README shipped in `0.1.0` tells consumers to use
+      `/loader`, which does not work in a bundled app (Phase 3 gotcha 1). The repo README is fixed;
+      npm still shows the wrong guidance until a patch is published. Docs-only change, so no code
+      impact. Needs an npm OTP.
 - [x] **2.5** `repository` (with `directory`), `homepage` and `bugs` added before first publish, so
       `0.1.0` shipped with the GitHub link rather than needing a bump.
 - [x] **2.6** Verified consumable: installed `recipe-ui-components@0.1.0` from the registry into a
@@ -163,27 +167,49 @@ Design decisions worth noting:
 
 ---
 
-## Phase 3 — SvelteKit app skeleton
+## Phase 3 — SvelteKit app skeleton ✅
 
-- [ ] **3.1** `npx sv create recipe-app` — Svelte 5, TypeScript, ESLint + Prettier
-- [ ] **3.2** `npm i recipe-ui-components` **from the npm registry** — not `file:` or `link:`.
-      The assignment forbids importing components from source. Already proven to work: a scratch
-      install of `0.1.0` resolved the loader, root and per-component subpaths (task 2.6).
-- [ ] **3.3** Register custom elements client-side only in `+layout.svelte`:
-      `onMount(() => defineCustomElements())`. SSR throws on `HTMLElement` otherwise.
-- [ ] **3.4** Adjust `vite.config.ts` (`optimizeDeps.exclude` / `ssr.noExternal`) if the loader
-      fails to resolve
-- [ ] **3.5** Routes:
-      - `/` — discover
-      - `/recipes/[id]` — details
-      - `/my-recipes` — list
-      - `/my-recipes/new` — create
-      - `/my-recipes/[id]/edit` — edit
-      - `/favorites`
-      - `/meal-plan`
-- [ ] **3.6** Shared layout: nav, global CSS custom-property design tokens
+- [x] **3.1** `sv create recipe-app` — Svelte 5.56, SvelteKit 2.63, Vite 8, TypeScript,
+      ESLint + Prettier. Note: no `svelte.config.js` in this version; adapter config lives in
+      `vite.config.ts` under the `sveltekit()` plugin.
+- [x] **3.2** `npm i recipe-ui-components` **from the registry**. Lockfile records
+      `https://registry.npmjs.org/recipe-ui-components/-/recipe-ui-components-0.1.0.tgz`, so this is
+      a real registry dependency, not a `file:`/`link:` shortcut.
+- [x] **3.3** Elements registered client-side only, in `+layout.svelte` `onMount`
+- [x] **3.4** `vite.config.ts`: file-watch polling enabled (see gotcha 3 below)
+- [x] **3.5** All seven routes created; dynamic routes render their `id` param
+- [x] **3.6** Shared layout with sticky nav + active state, footer, and `src/app.css` design tokens
+      that are projected into the components' shadow DOM via their CSS custom properties
+- [x] **3.7** `src/lib/components/stencil.ts` — `use:on` and `use:props` actions, solving the
+      event-binding and object-prop problems once (this is tasks **6.1 and 6.2**, done early)
+- [x] **3.8** Verified in a real browser: 19/19 checks, 0 page errors — SSR 200, hydration,
+      object props, both slots, events driving Svelte state, props pushed back to the element,
+      `goto()` navigation, all seven routes, nav active state on child routes
 
----
+### Phase 3 gotchas — all four cost real debugging time
+
+1. **Do not use `recipe-ui-components/loader` in a bundled app.** The lazy build fetches
+   `*.entry.js` chunks at runtime; Vite pre-bundles the loader but cannot see those chunks, so they
+   404 and every component fails with `Constructor for "recipe-card#undefined" was not found`. The
+   element upgrades and gets a shadow root, but `shadowRoot.innerHTML` stays empty and `.hydrated`
+   is never added — a confusingly quiet failure. Use the `dist-custom-elements` output instead:
+   `import('recipe-ui-components/components/recipe-card')` per component. `components/index.js`
+   exports only helpers and runtime, **not** the elements, so each must be imported individually.
+2. **A child's actions run before the parent layout's `onMount`.** So `use:props` fires while the
+   element is still un-upgraded, and plain assignment creates own properties that shadow the
+   accessors Stencil installs on the prototype during upgrade — the component then renders its
+   empty state despite the prop "being set". The `props` action waits on
+   `customElements.whenDefined(tag)` before assigning.
+3. **Vite's file watcher does not work on `/mnt/c`.** WSL2 gets no inotify events from the Windows
+   9p mount, so edits are invisible: the dev server keeps serving stale transforms and HMR silently
+   does nothing. This produced a phantom bug where a fix on disk had no effect. Fixed with
+   `server.watch.usePolling: true` in `vite.config.ts`. Also clear `node_modules/.vite` when
+   changing how a dependency is imported, since the dep optimizer caches aggressively.
+4. **`resolve()` returns a relative path during SSR.** Comparing it against
+   `page.url.pathname` for nav active state silently never matches. Keep the canonical route path
+   for matching separate from the resolved `href`. Also: the ESLint config requires `resolve()` on
+   every `href`/`goto()` and `SvelteSet` over a plain `Set` — both worth following, since
+   `SvelteSet` is reactive on mutation and needs no defensive copying.
 
 ## Phase 4 — Data & state layer
 
@@ -216,13 +242,13 @@ Design decisions worth noting:
 
 The graded-but-easily-broken part. Do 6.1 and 6.2 as soon as the first card renders.
 
-- [ ] **6.1 Object props** — Svelte sets *attributes* on unknown elements, and Stencil's
-      lazy-loaded proxy may not have the property defined at hydration time. Verify objects/arrays
-      actually land; if not, use `bind:this` + an `$effect` that assigns `el.recipe = value`.
-- [ ] **6.2 Custom events** — `onfavoriteToggle` will not bind. Use `on:favoriteToggle` or
-      `addEventListener` via an action/effect. Build one thin Svelte wrapper per component so this
-      is solved in a single place.
-- [ ] **6.3 Slots** — confirm shadow-DOM slot projection survives SvelteKit hydration
+- [x] **6.1 Object props** — solved in Phase 3.7 by the `use:props` action, which assigns DOM
+      properties and waits for `customElements.whenDefined()` so it works regardless of whether the
+      element has upgraded yet. Verified: `typeof el.recipe === 'object'` in a real browser.
+- [x] **6.2 Custom events** — solved in Phase 3.7 by the `use:on` action (`addEventListener` plus
+      teardown). Confirmed `favoriteToggle`, `viewDetails`, `searchChange` and `searchClear` all
+      drive Svelte state.
+- [x] **6.3 Slots** — confirmed: `badge` and `actions` both project through hydration
 - [ ] **6.6 Do not re-create custom elements to reflect state** — use **keyed** each blocks
       (`{#each recipes as r (r.id)}`) and update props, never rebuild the list. Recreating a
       `<recipe-card>` forces Stencil to re-hydrate it, the browser to re-decode its image, and the
