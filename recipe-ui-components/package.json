@@ -4,6 +4,15 @@
   "description": "Reusable StencilJS web components for a Recipe Finder & Meal Planner: recipe cards, search, filters, weekly meal-plan days and ratings.",
   "license": "MIT",
   "author": "Balwant Adhikari",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/BalwantAdhikari/RecipeFinder-MealPlanner.git",
+    "directory": "recipe-ui-components"
+  },
+  "homepage": "https://github.com/BalwantAdhikari/RecipeFinder-MealPlanner#readme",
+  "bugs": {
+    "url": "https://github.com/BalwantAdhikari/RecipeFinder-MealPlanner/issues"
+  },
   "keywords": [
     "stencil",
     "stenciljs",
