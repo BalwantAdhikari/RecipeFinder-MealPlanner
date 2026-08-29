@@ -136,14 +136,19 @@
       filters.addEventListener('filterClear', () => log('filterClear', null));
 
       // --- cards -------------------------------------------------------------
+      // Built once. Reacting to an event by tearing the list down and rebuilding
+      // it would re-hydrate every component, re-decode every image and drop the
+      // hover state mid-transition — which reads as a flicker. Instead we keep
+      // the elements and assign the single prop that changed.
       const cardsEl = document.getElementById('cards');
+      const cardEls = new Map();
 
-      function renderCards() {
-        cardsEl.replaceChildren();
+      function buildCards() {
         for (const recipe of RECIPES) {
           const card = document.createElement('recipe-card');
           card.recipe = recipe;
           card.isFavorite = favorites.has(recipe.id);
+          cardEls.set(recipe.id, card);
 
           // Make the card a drag source for the meal planner.
           card.draggable = true;
@@ -167,8 +172,10 @@
             const { recipeId, isFavorite } = e.detail;
             if (isFavorite) favorites.add(recipeId);
             else favorites.delete(recipeId);
+            // Targeted update: only the card that changed, only the prop that
+            // changed. No teardown, so no flicker.
+            cardEls.get(recipeId).isFavorite = isFavorite;
             log('favoriteToggle', e.detail);
-            renderCards();
           });
           card.addEventListener('viewDetails', e => log('viewDetails', e.detail));
 
@@ -184,15 +191,29 @@
       });
 
       // --- week --------------------------------------------------------------
+      // Same pattern as the cards: build once, then sync only the affected day.
       const weekEl = document.getElementById('week');
+      const dayEls = new Map();
 
-      function renderWeek() {
-        weekEl.replaceChildren();
+      /**
+       * Push the current plan for one day onto its element.
+       * A fresh array is required — Stencil compares props by reference, so
+       * mutating the existing array in place would not trigger a re-render.
+       */
+      function syncDay(day) {
+        const col = dayEls.get(day);
+        const meals = plan.filter(meal => meal.day === day);
+        col.meals = meals;
+        col.querySelector('[slot="footer"]').textContent = `${meals.length}/3 planned`;
+      }
+
+      function buildWeek() {
         DAYS.forEach((day, index) => {
           const col = document.createElement('meal-plan-day');
           col.day = day;
           col.meals = plan.filter(meal => meal.day === day);
           col.isToday = index === 0;
+          dayEls.set(day, col);
 
           const footer = document.createElement('small');
           footer.slot = 'footer';
@@ -206,7 +227,7 @@
               m => !(m.day === e.detail.day && m.slot === e.detail.slot),
             );
             log('removeMeal', e.detail);
-            renderWeek();
+            syncDay(e.detail.day);
           });
           col.addEventListener('mealDrop', e => {
             const recipe = RECIPES.find(r => r.id === e.detail.recipeId);
@@ -220,15 +241,15 @@
               image: recipe.image,
             });
             log('mealDrop', e.detail);
-            renderWeek();
+            syncDay(e.detail.day);
           });
 
           weekEl.append(col);
         });
       }
 
-      renderCards();
-      renderWeek();
+      buildCards();
+      buildWeek();
     </script>
   </body>
 </html>

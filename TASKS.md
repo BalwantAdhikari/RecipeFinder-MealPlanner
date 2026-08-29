@@ -182,6 +182,12 @@ The graded-but-easily-broken part. Do 6.1 and 6.2 as soon as the first card rend
       `addEventListener` via an action/effect. Build one thin Svelte wrapper per component so this
       is solved in a single place.
 - [ ] **6.3 Slots** — confirm shadow-DOM slot projection survives SvelteKit hydration
+- [ ] **6.6 Do not re-create custom elements to reflect state** — use **keyed** each blocks
+      (`{#each recipes as r (r.id)}`) and update props, never rebuild the list. Recreating a
+      `<recipe-card>` forces Stencil to re-hydrate it, the browser to re-decode its image, and the
+      hover state to drop mid-transition — visible as a flicker. Hit this in the dev sandbox: one
+      favorite toggle destroyed and rebuilt all three cards. Fixed by holding element references
+      and assigning only the changed prop. An unkeyed `{#each}` in Svelte is the equivalent trap.
 - [ ] **6.4 Theming** — style across the shadow boundary via CSS custom properties / `::part()`
 - [ ] **6.5** Accessibility and responsive pass on both library and app
 
