@@ -23,10 +23,29 @@ Track progress by checking boxes. Suggested build order is at the bottom.
 
 ## Phase 0 — Foundations ✅
 
-- [x] **0.1** `git init` at root, add `.gitignore`, initial commit (`829e7f0`, branch `main`)
-- [ ] **0.2** Create GitHub repo and push (repo link is a deliverable) — *deferred, doing manually*
+- [x] **0.1** `git init` at root, add `.gitignore`, initial commit on branch `main`
+- [x] **0.2** Pushed to **https://github.com/BalwantAdhikari/RecipeFinder-MealPlanner**
+      (see "Git identity" below — this repo uses a personal identity and SSH key, not the
+      machine-global corporate ones)
 - [x] **0.3** Confirmed `/recipe-ui-components` + `/recipe-app` sibling layout
 - [x] **0.4** Stray root scratch files (`index.html`, `tooltip.js`) removed
+
+### Git identity
+
+This repo must stay off the machine's corporate defaults (global git email is
+`@coxautoinc.com`, global npm registry is a corporate Artifactory). Configured **locally only**:
+
+```bash
+git config --local user.name  "Balwant Adhikari"
+git config --local user.email "balwantadhikari123@gmail.com"
+git config --local core.sshCommand "ssh -i ~/.ssh/id_github_personal -o IdentitiesOnly=yes"
+```
+
+`IdentitiesOnly=yes` matters — it stops SSH offering any other key, so this repo can only
+authenticate as the personal account. The remote is SSH rather than HTTPS so it bypasses the
+global `store` credential helper entirely.
+
+Commit messages carry **no** AI co-author trailer, by request.
 
 ---
 
@@ -108,18 +127,39 @@ Design decisions worth noting:
 
 ---
 
-## Phase 2 — npm publish
+## Phase 2 — npm publish ✅
 
-- [ ] **2.1** `npm login --registry=https://registry.npmjs.org/` with a **personal** account.
-      Do not publish under corporate credentials. Re-confirm `recipe-ui-components` is still
-      unclaimed at publish time.
+**Published: https://www.npmjs.com/package/recipe-ui-components** — `recipe-ui-components@0.1.0`,
+2026-08-29, 70 files / 402 kB unpacked, MIT, maintainer `balwant-adhikari`.
+
+- [x] **2.1** Logged in to `registry.npmjs.org` with a personal account (not corporate)
 - [x] **2.2** Every `exports`, `main`, `module`, `types`, `collection` and `unpkg` path verified to
       resolve against a real build. Two broken starter paths fixed in 1.1.
-- [ ] **2.3** `npm publish`. `publishConfig.access: public` is already set in `package.json`.
+- [x] **2.3** Published. Required **2FA** — see gotcha below.
 - [ ] **2.4** Semver discipline: `0.1.0` initial, minor bump per new component, patch per fix.
       Maintain `CHANGELOG.md`
-- [ ] **2.5** Add the GitHub repo URL to `package.json` `repository` once the remote exists (0.2).
-      Removed for now rather than left pointing at the starter template.
+- [x] **2.5** `repository` (with `directory`), `homepage` and `bugs` added before first publish, so
+      `0.1.0` shipped with the GitHub link rather than needing a bump.
+- [x] **2.6** Verified consumable: installed `recipe-ui-components@0.1.0` from the registry into a
+      scratch project. No `src/`, no tests. All four import paths resolve:
+      `recipe-ui-components/loader` (`defineCustomElements`), the root import
+      (`parseObjectProp`/`parseArrayProp`/`debounce`), and
+      `recipe-ui-components/components/recipe-card` (`RecipeCard`, `defineCustomElement`).
+
+### Publishing gotchas hit
+
+1. **npm requires 2FA to publish.** A plain `npm publish` in a non-interactive shell fails with
+   `403 ... Two-factor authentication or granular access token with bypass 2fa enabled is
+   required`. In a real terminal npm prompts for the OTP; otherwise pass `--otp=<6 digits>`.
+   Granular tokens with "bypass 2FA" are being deprecated for direct publishing, so the OTP path
+   is the durable one.
+2. **npm login sessions expire.** `npm whoami` worked, then returned 401 ten minutes later.
+   Re-run `npm login` if publish suddenly 401s.
+3. **Never publish straight after running the dev server.** `npm start` leaves `dist/` holding a
+   `--dev` build: unminified, and **missing `dist/collection/`** entirely, which the `collection`
+   and `collection:main` fields point at. A dev-state tarball was 42 files / 152 kB versus the
+   correct 70 files / 85 kB. `"prepublishOnly": "npm run build"` in `package.json` guards against
+   this by forcing a production rebuild.
 
 ---
 
@@ -127,7 +167,8 @@ Design decisions worth noting:
 
 - [ ] **3.1** `npx sv create recipe-app` — Svelte 5, TypeScript, ESLint + Prettier
 - [ ] **3.2** `npm i recipe-ui-components` **from the npm registry** — not `file:` or `link:`.
-      The assignment forbids importing components from source.
+      The assignment forbids importing components from source. Already proven to work: a scratch
+      install of `0.1.0` resolved the loader, root and per-component subpaths (task 2.6).
 - [ ] **3.3** Register custom elements client-side only in `+layout.svelte`:
       `onMount(() => defineCustomElements())`. SSR throws on `HTMLElement` otherwise.
 - [ ] **3.4** Adjust `vite.config.ts` (`optimizeDeps.exclude` / `ssr.noExternal`) if the loader

@@ -1,7 +1,13 @@
 # recipe-ui-components
 
+[![npm](https://img.shields.io/npm/v/recipe-ui-components)](https://www.npmjs.com/package/recipe-ui-components)
+[![license](https://img.shields.io/npm/l/recipe-ui-components)](./LICENSE)
+
 Reusable [StencilJS](https://stenciljs.com/) web components for a Recipe Finder & Meal Planner.
 Framework-agnostic custom elements, consumed here from a SvelteKit application.
+
+- **npm:** https://www.npmjs.com/package/recipe-ui-components
+- **Source:** https://github.com/BalwantAdhikari/RecipeFinder-MealPlanner
 
 ## Install
 
