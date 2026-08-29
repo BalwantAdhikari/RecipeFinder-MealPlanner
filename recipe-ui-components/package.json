@@ -1,6 +1,6 @@
 {
   "name": "recipe-ui-components",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Reusable StencilJS web components for a Recipe Finder & Meal Planner: recipe cards, search, filters, weekly meal-plan days and ratings.",
   "license": "MIT",
   "author": "Balwant Adhikari",
