@@ -21,7 +21,7 @@
 </script>
 
 <svelte:head>
-	<title>{recipe?.title ?? 'Recipe'} · Recipe Finder</title>
+	<title>{recipe?.title ?? 'Recipe'} · Smart Rasoi</title>
 </svelte:head>
 
 <div class="container container--tight">

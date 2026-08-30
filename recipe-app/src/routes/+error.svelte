@@ -25,8 +25,8 @@
 		<p class="detail">{message}</p>
 
 		<div class="actions">
-			<a class="cta" href={resolve('/')}>Back to discovery</a>
-			<a class="ghost" href={resolve('/my-recipes')}>My recipes</a>
+			<a class="btn btn--primary" href={resolve('/')}>Back to discovery</a>
+			<a class="btn" href={resolve('/my-recipes')}>My recipes</a>
 		</div>
 	</div>
 </div>
@@ -60,23 +60,5 @@
 		justify-content: center;
 		gap: 0.5rem;
 		margin-top: 1.5rem;
-	}
-
-	.cta,
-	.ghost {
-		padding: 0.5rem 1rem;
-		font-size: 0.9375rem;
-		text-decoration: none;
-		border-radius: var(--radius-sm);
-	}
-
-	.cta {
-		color: var(--accent-contrast);
-		background: var(--accent);
-	}
-
-	.ghost {
-		color: var(--text);
-		border: 1px solid var(--border);
 	}
 </style>

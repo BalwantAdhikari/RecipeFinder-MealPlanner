@@ -2,7 +2,6 @@
 	import { onMount } from 'svelte';
 	import { page } from '$app/state';
 	import { resolve } from '$app/paths';
-	import favicon from '$lib/assets/favicon.svg';
 	import { defineElements } from '$lib/components/define-elements';
 	import '../app.css';
 
@@ -30,29 +29,23 @@
 </script>
 
 <svelte:head>
-	<link rel="icon" href={favicon} />
+	<link rel="icon" href="/icon.jpg" />
+	<link rel="apple-touch-icon" href="/icon.jpg" />
 </svelte:head>
 
 <div class="shell">
 	<header class="header">
 		<div class="bar">
 			<a class="brand" href={resolve('/')}>
-				<span class="brand-mark" aria-hidden="true">
-					<svg
-						viewBox="0 0 24 24"
-						width="18"
-						height="18"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-					>
-						<path d="M4 4v7a4 4 0 0 0 8 0V4" />
-						<path d="M8 15v5" />
-						<path d="M17 4c0 3-2 4-2 7s2 4 2 4" />
-						<path d="M17 15v5" />
-					</svg>
-				</span>
+				<img
+					class="brand-mark"
+					src="/icon.jpg"
+					alt=""
+					aria-hidden="true"
+					width="32"
+					height="32"
+					decoding="async"
+				/>
 				<span class="brand-text">Smart Rasoi</span>
 			</a>
 
@@ -148,14 +141,14 @@
 		text-decoration: none;
 	}
 
+	/* The supplied icon is a square JPEG with a circular motif inset in it, so
+	   clipping to a circle crops the flat corners and leaves a clean badge. */
 	.brand-mark {
-		display: grid;
-		place-items: center;
 		width: 2rem;
 		height: 2rem;
-		color: var(--cream);
-		background: var(--accent);
+		object-fit: cover;
 		border-radius: var(--radius-full);
+		box-shadow: var(--shadow-1);
 	}
 
 	/* The wordmark carries the script face, the nav stays sans for legibility. */

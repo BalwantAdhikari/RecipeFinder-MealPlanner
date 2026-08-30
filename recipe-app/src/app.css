@@ -399,6 +399,16 @@ code {
 	font-size: var(--step--1);
 }
 
+/* Destructive actions keep the same shape and weight as their neighbours — the
+   red only appears on hover, so a row of actions stays visually even. */
+.btn--danger:hover,
+.on-cream .btn--danger:hover,
+.btn--danger.btn--on-cream:hover {
+	color: #fff;
+	background: var(--danger);
+	border-color: var(--danger);
+}
+
 /* Buttons that sit *on* a cream surface need the inverse treatment. */
 .on-cream .btn,
 .btn--on-cream {
@@ -534,18 +544,6 @@ recipe-card:hover::part(card) {
 	box-shadow: var(--shadow-3);
 }
 
-/* The library sets `height: 100%` on this image inside a box whose height comes
-   from `aspect-ratio: 4/3`. That is circular, so the browser falls back to the
-   image's intrinsic ratio — TheMealDB serves squares, which made cards with a
-   photo taller than the no-image placeholder. Restating the ratio with an auto
-   height keeps every card's media identical. Fixed in the library for the next
-   release. */
-recipe-card::part(image) {
-	height: auto;
-	aspect-ratio: 4 / 3;
-	object-fit: cover;
-}
-
 recipe-card::part(title) {
 	font-size: var(--step-1);
 	font-weight: 650;
@@ -586,21 +584,6 @@ recipe-filter-panel::part(select) {
 	background: var(--surface);
 	border-color: var(--border-cream);
 	border-radius: var(--radius-full);
-}
-
-/* The published 0.1.0 hardcodes `.chip { background: #27272a }` inside its own
-   `prefers-color-scheme: dark` block. Chips are not an exposed `part` and that
-   version has no chip-background variable, so the dark fill cannot be
-   overridden from here — only the text colour can. When the OS is dark, chip
-   text therefore has to be light to stay readable on that fill.
-   `--recipe-card-muted` is the only token 0.1.0 uses for it.
-   0.1.1 replaces the hardcoded rule with `--recipe-card-chip-bg`, after which
-   this block can go. */
-@media (prefers-color-scheme: dark) {
-	recipe-card {
-		--recipe-card-muted: #e5ded2;
-		--recipe-card-chip-text: #e5ded2;
-	}
 }
 
 @media (prefers-reduced-motion: reduce) {

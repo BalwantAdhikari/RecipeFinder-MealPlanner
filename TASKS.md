@@ -139,9 +139,12 @@ Design decisions worth noting:
 - [x] **2.3** Published. Required **2FA** — see gotcha below.
 - [ ] **2.4** Semver discipline: `0.1.0` initial, minor bump per new component, patch per fix.
       Maintain `CHANGELOG.md`
-- [~] **2.7** `0.1.1` prepared and committed (version bump + `CHANGELOG.md` + corrected README +
-      the `recipe-filter-panel` active-count fix). **Publish deferred to Phase 7.5.** No longer
-      docs-only, but the app works around the same bug locally, so nothing is blocked.
+- [x] **2.7** **`0.1.1` published** — https://www.npmjs.com/package/recipe-ui-components. Carries
+      the corrected consumption docs, the `recipe-filter-panel` active-count fix, the media
+      aspect-ratio fix, the chip contrast tokens, and the heart favorite toggle with
+      `part="favorite"`. `recipe-app` now installs `0.1.1` from the registry, which let **both**
+      app-side workarounds be deleted (the dark-mode chip override and the `::part(image)` aspect
+      fix).
 - [x] **2.5** `repository` (with `directory`), `homepage` and `bugs` added before first publish, so
       `0.1.0` shipped with the GitHub link rather than needing a bump.
 - [x] **2.6** Verified consumable: installed `recipe-ui-components@0.1.0` from the registry into a
@@ -395,13 +398,7 @@ Two process notes worth keeping:
       GitHub link, deployed URL
 - [ ] **7.3** Library README finalized (see 1.7)
 - [ ] **7.4** Final pass: dead starter code removed, lint clean, tests green
-- [ ] **7.5** **Publish `recipe-ui-components@0.1.1`** (deferred from 2.7 — docs-only). Already
-      committed and ready; `prepublishOnly` forces a clean production build.
-      1. Revoke the compromised token, create a new one, then `export NPM_TOKEN=<new>`
-      2. `cd recipe-ui-components && npm publish`
-      3. Verify the corrected README renders on npmjs.com
-      4. `cd recipe-app && npm install recipe-ui-components@0.1.1 && rm -rf node_modules/.vite`
-      5. Re-run the browser verification, then commit the lockfile change
+- [x] **7.5** `0.1.1` published and consumed (see 2.7). Both app-side workarounds removed.
 - [ ] **7.6** Confirm the README's npm link points at the latest published version
 
 ---

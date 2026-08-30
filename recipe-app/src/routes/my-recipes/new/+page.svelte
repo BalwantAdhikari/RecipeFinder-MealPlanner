@@ -12,7 +12,7 @@
 </script>
 
 <svelte:head>
-	<title>New recipe · Recipe Finder</title>
+	<title>New recipe · Smart Rasoi</title>
 </svelte:head>
 
 <div class="container container--tight">

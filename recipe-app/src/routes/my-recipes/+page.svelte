@@ -22,7 +22,7 @@
 </script>
 
 <svelte:head>
-	<title>My recipes · Recipe Finder</title>
+	<title>My recipes · Smart Rasoi</title>
 </svelte:head>
 
 <div class="container">
@@ -69,14 +69,14 @@
 					<span slot="badge" class="badge">Mine</span>
 					<a
 						slot="actions"
-						class="ghost"
+						class="btn btn--sm btn--on-cream"
 						href={resolve('/my-recipes/[id]/edit', { id: recipe.id })}
 					>
 						Edit
 					</a>
 					<button
 						slot="actions"
-						class="ghost ghost--danger"
+						class="btn btn--sm btn--on-cream btn--danger"
 						onclick={() => (pendingDelete = recipe)}
 					>
 						Delete
@@ -88,6 +88,13 @@
 </div>
 
 <style>
+	/* These cards carry three actions (View / Edit / Delete) rather than two, and
+	   the library's footer shrinks its items instead of wrapping, which made
+	   "View recipe" break onto two lines. A wider minimum gives them one row. */
+	.card-grid {
+		grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+	}
+
 	h1 {
 		margin-bottom: 0;
 	}

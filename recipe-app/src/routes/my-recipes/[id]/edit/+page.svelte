@@ -27,7 +27,7 @@
 </script>
 
 <svelte:head>
-	<title>{existing ? `Edit ${existing.title}` : 'Edit recipe'} · Recipe Finder</title>
+	<title>{existing ? `Edit ${existing.title}` : 'Edit recipe'} · Smart Rasoi</title>
 </svelte:head>
 
 <div class="container container--tight">
@@ -41,7 +41,7 @@
 			Only recipes you created can be edited, and they are stored in this browser. This one may have
 			been deleted or created elsewhere.
 		</p>
-		<a class="cta" href={resolve('/my-recipes')}>Back to my recipes</a>
+		<a class="btn btn--primary" href={resolve('/my-recipes')}>Back to my recipes</a>
 	{:else}
 		<h1>Edit recipe</h1>
 
@@ -75,15 +75,6 @@
 
 	.muted {
 		color: var(--muted);
-	}
-
-	.cta {
-		display: inline-block;
-		padding: 0.5rem 1rem;
-		color: var(--accent-contrast);
-		text-decoration: none;
-		background: var(--accent);
-		border-radius: var(--radius-sm);
 	}
 
 	.form-card {
