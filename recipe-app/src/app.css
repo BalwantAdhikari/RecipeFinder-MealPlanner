@@ -577,6 +577,12 @@ meal-plan-day::part(day) {
 
 meal-plan-day::part(slot) {
 	border-radius: var(--radius-sm);
+	/* The slot is a grid with an implicit `auto` column, which sizes to
+	   max-content — so a long meal title grows the track wider than the day
+	   column and the whole slot spills out (measured 33px past the card).
+	   `minmax(0, 1fr)` lets the track shrink, which in turn lets the title's
+	   own `text-overflow: ellipsis` finally apply. Fixed in the library too. */
+	grid-template-columns: minmax(0, 1fr);
 }
 
 recipe-filter-panel::part(select) {

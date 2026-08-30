@@ -62,6 +62,12 @@
 
 .slot {
   display: grid;
+  /* Explicit `minmax(0, 1fr)` rather than the implicit `auto` column: an auto
+     track sizes to max-content, so a long meal title grew the track wider than
+     the day column and pushed the whole slot outside the card. Allowing the
+     track to shrink below content width is also what lets `.meal__title`'s
+     `text-overflow: ellipsis` take effect. */
+  grid-template-columns: minmax(0, 1fr);
   gap: 0.25rem;
   padding: 0.5rem;
   background: var(--day-slot-bg);
@@ -85,6 +91,9 @@
   display: flex;
   align-items: center;
   gap: 0.375rem;
+  /* Grid items default to min-width: auto, which would keep this row at its
+     content width regardless of the track. */
+  min-width: 0;
 }
 
 .meal__img {

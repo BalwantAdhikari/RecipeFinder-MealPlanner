@@ -279,17 +279,43 @@
 		margin-bottom: 0;
 	}
 
+	/*
+	 * Explicit column counts rather than auto-fit.
+	 *
+	 * Seven items never divide evenly, so auto-fit picks whatever fits and leaves
+	 * a ragged orphan row — at 740px it chose four cramped ~150px columns with a
+	 * row of three beneath. Stepping deliberately keeps each column wide enough
+	 * to read a meal name, and only claims the full week-at-a-glance row when
+	 * there is genuinely space for it.
+	 *
+	 * `align-items: stretch` (the default, stated for clarity) matters here: a day
+	 * holding a meal is taller than an empty one, and without it the cards in a
+	 * row end at different heights.
+	 */
 	.week {
 		display: grid;
 		gap: var(--space-3);
-		grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-		align-items: start;
+		grid-template-columns: 1fr;
+		align-items: stretch;
 	}
 
-	/* Pin all seven days to one row once there is room. With auto-fit alone the
-	   last day wraps onto its own line, which breaks reading the week at a
-	   glance — the whole point of the view. */
-	@media (min-width: 1080px) {
+	/* Two up: columns stay wide enough that titles rarely truncate. */
+	@media (min-width: 560px) {
+		.week {
+			grid-template-columns: repeat(2, minmax(0, 1fr));
+		}
+	}
+
+	/* Four up, wrapping 4 + 3. */
+	@media (min-width: 900px) {
+		.week {
+			grid-template-columns: repeat(4, minmax(0, 1fr));
+		}
+	}
+
+	/* The whole week on one row — the point of the view — once seven columns can
+	   each hold a name without shrinking to nothing. */
+	@media (min-width: 1200px) {
 		.week {
 			grid-template-columns: repeat(7, minmax(0, 1fr));
 		}

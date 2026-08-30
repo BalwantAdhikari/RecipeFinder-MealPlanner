@@ -93,6 +93,21 @@ describe('meal-plan-day', () => {
     expect(spy.length).toBe(0);
   });
 
+  it('lets a long meal title shrink rather than widening the slot', async () => {
+    // Regression: the slot's implicit `auto` grid column sized to max-content,
+    // so a long title grew the track and pushed the slot outside the day card.
+    const { root } = await render(
+      <meal-plan-day
+        day="Sunday"
+        meals={[{ ...DINNER, title: 'A Deliberately Very Long Recipe Title That Must Truncate' }]}
+      />,
+    );
+    const slot = root.shadowRoot!.querySelector('.slot--filled') as HTMLElement;
+
+    // A shrinkable track is what allows the title's ellipsis to apply.
+    expect(getComputedStyle(slot).gridTemplateColumns).not.toBe('auto');
+  });
+
   it('marks the column as today', async () => {
     const { root } = await render(<meal-plan-day day="Wednesday" isToday={true} />);
     const shadow = root.shadowRoot!;

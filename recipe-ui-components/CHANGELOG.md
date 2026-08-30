@@ -3,6 +3,20 @@
 All notable changes to `recipe-ui-components`.
 This project follows [semantic versioning](https://semver.org/).
 
+## Unreleased
+
+### Fixed
+
+- **A long meal title pushed the slot outside the day card.** `.slot` is a grid whose implicit
+  `auto` column sizes to max-content, so a long title widened the track past its container —
+  measured 33px of spill — and nothing could shrink, which also stopped `.meal__title`'s
+  `text-overflow: ellipsis` from ever applying. The slot now uses
+  `grid-template-columns: minmax(0, 1fr)` and `.meal` gets `min-width: 0`, since grid items
+  default to `min-width: auto`. Covered by a regression test.
+
+  Consumers on 0.1.1 can work around it with
+  `meal-plan-day::part(slot) { grid-template-columns: minmax(0, 1fr) }`.
+
 ## 0.1.1
 
 ### Changed
