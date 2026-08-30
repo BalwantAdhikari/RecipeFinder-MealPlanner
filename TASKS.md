@@ -138,10 +138,9 @@ Design decisions worth noting:
 - [x] **2.3** Published. Required **2FA** — see gotcha below.
 - [ ] **2.4** Semver discipline: `0.1.0` initial, minor bump per new component, patch per fix.
       Maintain `CHANGELOG.md`
-- [ ] **2.7** **Publish `0.1.1`** — the README shipped in `0.1.0` tells consumers to use
-      `/loader`, which does not work in a bundled app (Phase 3 gotcha 1). The repo README is fixed;
-      npm still shows the wrong guidance until a patch is published. Docs-only change, so no code
-      impact. Needs an npm OTP.
+- [~] **2.7** `0.1.1` prepared and committed (version bump + `CHANGELOG.md` + corrected README).
+      **Publish deferred to Phase 7.5** — it is docs-only, so nothing depends on it and the app runs
+      fine on `0.1.0`. See Phase 7.5.
 - [x] **2.5** `repository` (with `directory`), `homepage` and `bugs` added before first publish, so
       `0.1.0` shipped with the GitHub link rather than needing a bump.
 - [x] **2.6** Verified consumable: installed `recipe-ui-components@0.1.0` from the registry into a
@@ -159,7 +158,18 @@ Design decisions worth noting:
    is the durable one.
 2. **npm login sessions expire.** `npm whoami` worked, then returned 401 ten minutes later.
    Re-run `npm login` if publish suddenly 401s.
-3. **Never publish straight after running the dev server.** `npm start` leaves `dist/` holding a
+3. **Project `.npmrc` overrides user `~/.npmrc`.** The repo pins the auth token to
+   `${NPM_TOKEN}`, so if that variable is not exported, the line shadows whatever credential
+   `npm login` wrote to `~/.npmrc` and publishing fails with 401 from inside the package
+   directory. Pick one path and stick to it: either export `NPM_TOKEN`, or comment out the
+   `_authToken` line and use `npm login` + `--otp`. Do not mix them.
+
+   Never put a literal token in any `.npmrc` here — all three are committed to a public repo.
+   Check before every publish:
+   ```bash
+   grep -rE '_authToken=npm_' .npmrc */.npmrc && echo LEAK || echo safe
+   ```
+4. **Never publish straight after running the dev server.** `npm start` leaves `dist/` holding a
    `--dev` build: unminified, and **missing `dist/collection/`** entirely, which the `collection`
    and `collection:main` fields point at. A dev-state tarball was 42 files / 152 kB versus the
    correct 70 files / 85 kB. `"prepublishOnly": "npm run build"` in `package.json` guards against
@@ -267,6 +277,14 @@ The graded-but-easily-broken part. Do 6.1 and 6.2 as soon as the first card rend
       GitHub link, deployed URL
 - [ ] **7.3** Library README finalized (see 1.7)
 - [ ] **7.4** Final pass: dead starter code removed, lint clean, tests green
+- [ ] **7.5** **Publish `recipe-ui-components@0.1.1`** (deferred from 2.7 — docs-only). Already
+      committed and ready; `prepublishOnly` forces a clean production build.
+      1. Revoke the compromised token, create a new one, then `export NPM_TOKEN=<new>`
+      2. `cd recipe-ui-components && npm publish`
+      3. Verify the corrected README renders on npmjs.com
+      4. `cd recipe-app && npm install recipe-ui-components@0.1.1 && rm -rf node_modules/.vite`
+      5. Re-run the browser verification, then commit the lockfile change
+- [ ] **7.6** Confirm the README's npm link points at the latest published version
 
 ---
 
