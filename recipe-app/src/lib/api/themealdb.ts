@@ -81,6 +81,48 @@ export const AREAS: readonly string[] = [
 	'Vietnamese'
 ];
 
+/**
+ * Categories hidden from the whole app.
+ *
+ * Excluded everywhere, not just from the filter dropdown: the default browse and
+ * any area filter would otherwise still surface them.
+ *
+ * Enforcing this by category name alone is not enough — `filter.php` returns
+ * partial records with no `strCategory`, so an area-filtered result set carries
+ * no category to test. Instead the ids belonging to each excluded category are
+ * fetched once and subtracted from every result set, which is reliable
+ * regardless of how the records were obtained.
+ */
+export const EXCLUDED_CATEGORIES: readonly string[] = ['Beef', 'Pork'];
+
+/**
+ * Cached ids of excluded recipes.
+ *
+ * Module-level: the mapping is static, so the two extra requests happen once
+ * per server process / page session rather than per navigation.
+ */
+let excludedIdsCache: Promise<Set<string>> | null = null;
+
+/** Ids of every recipe in an excluded category. */
+export function excludedIds(fetchFn: Fetch): Promise<Set<string>> {
+	excludedIdsCache ??= Promise.all(
+		EXCLUDED_CATEGORIES.map((category) => filterByCategory(fetchFn, category))
+	)
+		.then((lists) => new Set(lists.flat().map((r) => r.id)))
+		.catch(() => {
+			// A failed lookup must not blank the page. Reset so the next call retries
+			// rather than caching an empty set forever.
+			excludedIdsCache = null;
+			return new Set<string>();
+		});
+	return excludedIdsCache;
+}
+
+/** True when a recipe belongs to an excluded category by name. */
+export function isExcludedCategory(category: string | undefined): boolean {
+	return !!category && EXCLUDED_CATEGORIES.includes(category);
+}
+
 /** Raised on a non-2xx response so load functions can map it to an error page. */
 export class MealDbError extends Error {
 	constructor(
@@ -150,7 +192,10 @@ export async function listCategories(fetchFn: Fetch): Promise<string[]> {
 		fetchFn,
 		'/list.php?c=list'
 	);
-	return (data.meals ?? []).map((m) => m.strCategory).sort((a, b) => a.localeCompare(b));
+	return (data.meals ?? [])
+		.map((m) => m.strCategory)
+		.filter((c) => !EXCLUDED_CATEGORIES.includes(c))
+		.sort((a, b) => a.localeCompare(b));
 }
 
 /**
@@ -170,6 +215,25 @@ export async function discover(
 ): Promise<Recipe[]> {
 	const { category, area } = filters;
 	const trimmed = query.trim();
+
+	// An excluded category can never be an active filter, so short-circuit rather
+	// than fetching a set we would discard entirely.
+	if (isExcludedCategory(category)) return [];
+
+	const [results, blocked] = await Promise.all([
+		discoverRaw(fetchFn, trimmed, { category, area }),
+		excludedIds(fetchFn)
+	]);
+	return results.filter((r) => !blocked.has(r.id) && !isExcludedCategory(r.category));
+}
+
+/** The unfiltered fetch strategy. See {@link discover} for the exclusion pass. */
+async function discoverRaw(
+	fetchFn: Fetch,
+	trimmed: string,
+	filters: RecipeFilters
+): Promise<Recipe[]> {
+	const { category, area } = filters;
 
 	if (trimmed) {
 		const results = await searchByName(fetchFn, trimmed);

@@ -18,6 +18,7 @@ Track progress by checking boxes. Suggested build order is at the bottom.
 | npm package name | `recipe-ui-components`, unscoped | Confirmed available on registry.npmjs.org, so no scope is required. Sidesteps needing a scope tied to a personal account. |
 | npm registry | Project-local `.npmrc` pins `registry.npmjs.org` | The machine default is a corporate Artifactory. This project must not publish or install through it. Publishing needs a personal npm login. |
 | Git | Single root repo; the nested `create-stencil` `.git` was removed | Assignment asks for one GitHub repository link. |
+| Excluded categories | **Beef** and **Pork** are hidden app-wide (`EXCLUDED_CATEGORIES`) | Requested. Enforced by id, not category name, because `filter.php` returns partial records with no `strCategory` — see Phase 4. |
 
 ---
 
@@ -237,6 +238,10 @@ Design decisions worth noting:
       and user recipes from one route
 - [x] **4.8** **27 offline tests** for the normalizer and merge logic, plus **8 opt-in live
       integration tests** against the real API (`npm run test:live`)
+- [x] **4.10** **Beef and Pork excluded app-wide.** Removed from the category dropdown (14 → 12),
+      subtracted from every result set, and blocked on the details route so a deep link is not a way
+      around it. The same rule applies to user-created recipes, so the local path cannot reintroduce
+      them.
 - [x] **4.9** Verified end-to-end in a browser: 17/17 checks — live data renders, search drives the
       URL, filters apply, category+area intersects, favorites persist across reload, meal-plan
       writes are version-stamped, unknown ids 404, no-results shows an empty state
@@ -263,7 +268,12 @@ Probed before writing the client rather than assumed:
    `strArea` values. Hardcoded as `AREAS` because deriving it at runtime costs 14 requests.
 3. **Instructions are one blob split by `\r\n`**, sometimes with blank lines and pre-existing
    "1." / "2)" numbering that has to be stripped, or the UI shows "1. 1. Bring a pot…".
-4. **Ingredient names repeat legitimately.** A flan lists sugar for the caramel and again for the
+4. **Excluding a category cannot be done by name alone.** `filter.php` omits `strCategory`, so an
+   area-filtered result set has no category to test. The ids of every recipe in an excluded
+   category are fetched once, cached at module level, and subtracted from all results. Measured:
+   the Chinese area filter returns 27 upstream and shows 20 — the 7 removed arrived as partial
+   records with no category at all, so a name check would have let them through.
+5. **Ingredient names repeat legitimately.** A flan lists sugar for the caramel and again for the
    custard, so keying an `{#each}` by ingredient name is a runtime `each_key_duplicate` crash.
 
 ### Phase 4 gotchas

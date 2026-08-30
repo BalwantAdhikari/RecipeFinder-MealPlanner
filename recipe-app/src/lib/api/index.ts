@@ -1,5 +1,8 @@
 export {
 	AREAS,
+	EXCLUDED_CATEGORIES,
+	excludedIds,
+	isExcludedCategory,
 	MealDbError,
 	discover,
 	filterByArea,

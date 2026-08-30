@@ -1,5 +1,5 @@
 import { error } from '@sveltejs/kit';
-import { lookupById, MealDbError } from '$lib/api';
+import { lookupById, isExcludedCategory, MealDbError } from '$lib/api';
 import { isUserRecipeId } from '$lib/stores';
 import type { PageLoad } from './$types';
 
@@ -20,6 +20,11 @@ export const load: PageLoad = async ({ fetch, params }) => {
 		const recipe = await lookupById(fetch, params.id);
 		if (!recipe) {
 			error(404, `No recipe found with id ${params.id}`);
+		}
+		// Excluded categories are hidden app-wide, so a direct link must not be a
+		// way around the filter.
+		if (isExcludedCategory(recipe.category)) {
+			error(404, 'That recipe is not available.');
 		}
 		return { recipe, isUserRecipe: false, error: null };
 	} catch (err) {

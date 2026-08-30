@@ -61,3 +61,25 @@ describe('mergeResults', () => {
 		expect(mergeResults([], [])).toEqual([]);
 	});
 });
+
+describe('excluded categories', () => {
+	const hidden: Recipe[] = [
+		{ id: 'user-3', title: 'My Beef Stew', category: 'Beef', area: 'Irish', source: 'user' },
+		{ id: 'user-4', title: 'My Pork Belly', category: 'Pork', area: 'Chinese', source: 'user' }
+	];
+
+	it('drops user recipes in an excluded category', () => {
+		expect(filterLocal(hidden, '', {})).toEqual([]);
+	});
+
+	it('keeps user recipes in other categories', () => {
+		expect(filterLocal([...mine, ...hidden], '', {}).map((r) => r.id)).toEqual([
+			'user-1',
+			'user-2'
+		]);
+	});
+
+	it('still drops them when the query would otherwise match', () => {
+		expect(filterLocal(hidden, 'beef', {})).toEqual([]);
+	});
+});

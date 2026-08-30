@@ -3,7 +3,7 @@
  * Kept out of the repo test suite: it needs network and would make CI flaky.
  */
 import { describe, it, expect } from 'vitest';
-import { discover, lookupById, listCategories, searchByName } from './themealdb';
+import { discover, lookupById, listCategories, searchByName, excludedIds } from './themealdb';
 
 const f = globalThis.fetch;
 
@@ -57,9 +57,49 @@ describe('live TheMealDB', () => {
 		expect(await lookupById(f, '999999')).toBeNull();
 	});
 
-	it('listCategories returns 14 sorted categories', async () => {
+	it('listCategories returns the sorted, non-excluded categories', async () => {
 		const c = await listCategories(f);
-		expect(c).toHaveLength(14);
+		// TheMealDB has 14; Beef and Pork are excluded app-wide.
+		expect(c).toHaveLength(12);
 		expect(c).toEqual([...c].sort((a, b) => a.localeCompare(b)));
+	});
+});
+
+describe('live exclusion of Beef and Pork', () => {
+	it('the category dropdown omits them', async () => {
+		const c = await listCategories(f);
+		expect(c).not.toContain('Beef');
+		expect(c).not.toContain('Pork');
+		expect(c).toHaveLength(12); // 14 total minus the 2 excluded
+	});
+
+	it('selecting an excluded category yields nothing', async () => {
+		expect(await discover(f, '', { category: 'Beef' })).toEqual([]);
+		expect(await discover(f, '', { category: 'Pork' })).toEqual([]);
+	});
+
+	it('default browse contains no excluded recipes', async () => {
+		const r = await discover(f, '', {});
+		expect(r.every((x) => x.category !== 'Beef' && x.category !== 'Pork')).toBe(true);
+	});
+
+	it('a name search cannot surface them', async () => {
+		// "beef" matches many titles; every hit must be filtered out by id.
+		const r = await discover(f, 'beef', {});
+		expect(r.every((x) => x.category !== 'Beef' && x.category !== 'Pork')).toBe(true);
+	});
+
+	it('an area filter cannot surface them, despite partial records having no category', async () => {
+		// This is the case category-name filtering alone would miss: filter.php
+		// returns no strCategory, so exclusion has to work by id.
+		const blocked = await excludedIds(f);
+		const r = await discover(f, '', { area: 'Chinese' });
+		expect(r.some((x) => blocked.has(x.id))).toBe(false);
+		expect(r.length).toBeGreaterThan(0);
+	});
+
+	it('excludedIds covers both categories', async () => {
+		const ids = await excludedIds(f);
+		expect(ids.size).toBeGreaterThan(100); // ~95 beef + ~61 pork
 	});
 });

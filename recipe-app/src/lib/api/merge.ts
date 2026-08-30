@@ -10,6 +10,7 @@
  */
 
 import type { Recipe, RecipeFilters } from 'recipe-ui-components';
+import { isExcludedCategory } from './themealdb';
 
 /** Case-insensitive substring match on the title, matching the API's behaviour. */
 function matchesQuery(recipe: Recipe, query: string): boolean {
@@ -26,7 +27,12 @@ function matchesFilters(recipe: Recipe, filters: RecipeFilters): boolean {
 /** Apply the same query/filter criteria to a local recipe list. */
 export function filterLocal(recipes: Recipe[], query: string, filters: RecipeFilters): Recipe[] {
 	const trimmed = query.trim();
-	return recipes.filter((r) => matchesQuery(r, trimmed) && matchesFilters(r, filters));
+	return recipes.filter(
+		(r) =>
+			// Same exclusion as the API side, so a user recipe in a hidden category
+			// does not reappear through the local path.
+			!isExcludedCategory(r.category) && matchesQuery(r, trimmed) && matchesFilters(r, filters)
+	);
 }
 
 /**

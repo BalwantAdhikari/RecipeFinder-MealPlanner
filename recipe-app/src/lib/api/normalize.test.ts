@@ -7,6 +7,7 @@ import {
 	normalizePartial,
 	type RawMealFull
 } from './normalize';
+import { isExcludedCategory } from './themealdb';
 
 /** Minimal raw record; individual tests add the fields they care about. */
 function raw(over: Partial<RawMealFull> = {}): RawMealFull {
@@ -183,5 +184,24 @@ describe('normalizePartial', () => {
 		const r = normalizePartial({ idMeal: '1', strMeal: 'Fish', strMealThumb: null });
 		expect(r.ingredients).toBeUndefined();
 		expect(r.instructions).toBeUndefined();
+	});
+});
+
+describe('isExcludedCategory', () => {
+	it('matches the excluded categories', () => {
+		expect(isExcludedCategory('Beef')).toBe(true);
+		expect(isExcludedCategory('Pork')).toBe(true);
+	});
+
+	it('does not match anything else, and tolerates undefined', () => {
+		expect(isExcludedCategory('Chicken')).toBe(false);
+		expect(isExcludedCategory('Seafood')).toBe(false);
+		expect(isExcludedCategory(undefined)).toBe(false);
+	});
+
+	it('is case-sensitive, matching the API vocabulary exactly', () => {
+		// The API always returns "Beef", never "beef"; a loose match risks
+		// hiding a legitimate future category like "Beefsteak Tomato".
+		expect(isExcludedCategory('beef')).toBe(false);
 	});
 });
