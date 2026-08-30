@@ -53,64 +53,66 @@
 	<title>Favorites · Recipe Finder</title>
 </svelte:head>
 
-<div class="page-head">
-	<div>
-		<h1>Favorites</h1>
-		<p class="lede">
-			{favorites.count === 0
-				? 'Recipes you star appear here.'
-				: `${favorites.count} saved recipe${favorites.count === 1 ? '' : 's'}.`}
-		</p>
+<div class="container">
+	<div class="page-head">
+		<div>
+			<h1>Favorites</h1>
+			<p class="lede">
+				{favorites.count === 0
+					? 'Recipes you star appear here.'
+					: `${favorites.count} saved recipe${favorites.count === 1 ? '' : 's'}.`}
+			</p>
+		</div>
+		{#if favorites.count > 0}
+			<button class="btn btn--danger" onclick={() => favorites.clear()}>Clear all</button>
+		{/if}
 	</div>
-	{#if favorites.count > 0}
-		<button class="btn btn--danger" onclick={() => favorites.clear()}>Clear all</button>
-	{/if}
-</div>
 
-{#if favorites.count === 0}
-	<div class="empty-state">
-		<p>Nothing saved yet. Star a recipe to keep it here.</p>
-		<a class="btn btn--primary" href={resolve('/')}>Browse recipes</a>
-	</div>
-{:else if loading}
-	<p class="lede">Loading your favorites…</p>
-{:else}
-	{#if failed.length}
-		<p class="warn" role="status">
-			{failed.length} favorite{failed.length === 1 ? '' : 's'} could not be loaded. They may have been
-			removed upstream.
-			<button class="link-btn" onclick={() => failed.forEach((id) => favorites.set(id, false))}>
-				Remove them
-			</button>
-		</p>
-	{/if}
+	{#if favorites.count === 0}
+		<div class="empty-state">
+			<p>Nothing saved yet. Star a recipe to keep it here.</p>
+			<a class="btn btn--primary" href={resolve('/')}>Browse recipes</a>
+		</div>
+	{:else if loading}
+		<p class="lede">Loading your favorites…</p>
+	{:else}
+		{#if failed.length}
+			<p class="warn" role="status">
+				{failed.length} favorite{failed.length === 1 ? '' : 's'} could not be loaded. They may have been
+				removed upstream.
+				<button class="link-btn" onclick={() => failed.forEach((id) => favorites.set(id, false))}>
+					Remove them
+				</button>
+			</p>
+		{/if}
 
-	<div class="card-grid">
-		{#each resolved as recipe (recipe.id)}
-			<recipe-card
-				use:setProps={{ recipe, isFavorite: true }}
-				use:on={{
-					favoriteToggle: (e) => favorites.set(e.detail.recipeId, e.detail.isFavorite),
-					viewDetails: (e) => goto(resolve('/recipes/[id]', { id: e.detail.recipeId }))
-				}}
-			>
-				{#if recipe.source === 'user'}
-					<span slot="badge" class="badge">Mine</span>
-				{/if}
-				<button
-					slot="actions"
-					class="btn btn--sm btn--ghost"
-					onclick={() => {
-						mealPlan.assign(today(), 'dinner', recipe);
-						goto(resolve('/meal-plan'));
+		<div class="card-grid">
+			{#each resolved as recipe (recipe.id)}
+				<recipe-card
+					use:setProps={{ recipe, isFavorite: true }}
+					use:on={{
+						favoriteToggle: (e) => favorites.set(e.detail.recipeId, e.detail.isFavorite),
+						viewDetails: (e) => goto(resolve('/recipes/[id]', { id: e.detail.recipeId }))
 					}}
 				>
-					Add to plan
-				</button>
-			</recipe-card>
-		{/each}
-	</div>
-{/if}
+					{#if recipe.source === 'user'}
+						<span slot="badge" class="badge">Mine</span>
+					{/if}
+					<button
+						slot="actions"
+						class="btn btn--sm btn--ghost"
+						onclick={() => {
+							mealPlan.assign(today(), 'dinner', recipe);
+							goto(resolve('/meal-plan'));
+						}}
+					>
+						Add to plan
+					</button>
+				</recipe-card>
+			{/each}
+		</div>
+	{/if}
+</div>
 
 <style>
 	h1 {
@@ -134,7 +136,7 @@
 		padding: var(--space-3) var(--space-4);
 		margin-bottom: var(--space-4);
 		font-size: var(--step--1);
-		background: var(--surface-2);
+		background: var(--bg-soft);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
 	}
@@ -142,7 +144,7 @@
 	.link-btn {
 		padding: 0;
 		font: inherit;
-		color: var(--accent-text);
+		color: var(--cream);
 		text-decoration: underline;
 		cursor: pointer;
 		background: none;

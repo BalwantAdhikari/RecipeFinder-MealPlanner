@@ -30,33 +30,37 @@
 	<title>{existing ? `Edit ${existing.title}` : 'Edit recipe'} · Recipe Finder</title>
 </svelte:head>
 
-<nav class="crumbs" aria-label="Breadcrumb">
-	<a href={resolve('/my-recipes')}>My recipes</a> / Edit
-</nav>
+<div class="container container--tight">
+	<nav class="crumbs" aria-label="Breadcrumb">
+		<a href={resolve('/my-recipes')}>My recipes</a> / Edit
+	</nav>
 
-{#if !existing}
-	<h1>Recipe not found</h1>
-	<p class="muted">
-		Only recipes you created can be edited, and they are stored in this browser. This one may have
-		been deleted or created elsewhere.
-	</p>
-	<a class="cta" href={resolve('/my-recipes')}>Back to my recipes</a>
-{:else}
-	<h1>Edit recipe</h1>
+	{#if !existing}
+		<h1>Recipe not found</h1>
+		<p class="muted">
+			Only recipes you created can be edited, and they are stored in this browser. This one may have
+			been deleted or created elsewhere.
+		</p>
+		<a class="cta" href={resolve('/my-recipes')}>Back to my recipes</a>
+	{:else}
+		<h1>Edit recipe</h1>
 
-	<RecipeForm
-		bind:draft
-		categories={data.categories}
-		submitLabel="Save changes"
-		onsubmit={(recipe) => {
-			const updated = userRecipes.update(id, recipe);
-			// Keep the planner's denormalised title/image in step.
-			if (updated) mealPlan.syncRecipe(updated);
-			goto(resolve('/recipes/[id]', { id }));
-		}}
-		oncancel={() => goto(resolve('/recipes/[id]', { id }))}
-	/>
-{/if}
+		<div class="card on-cream form-card">
+			<RecipeForm
+				bind:draft
+				categories={data.categories}
+				submitLabel="Save changes"
+				onsubmit={(recipe) => {
+					const updated = userRecipes.update(id, recipe);
+					// Keep the planner's denormalised title/image in step.
+					if (updated) mealPlan.syncRecipe(updated);
+					goto(resolve('/recipes/[id]', { id }));
+				}}
+				oncancel={() => goto(resolve('/recipes/[id]', { id }))}
+			/>
+		</div>
+	{/if}
+</div>
 
 <style>
 	.crumbs {
@@ -80,5 +84,13 @@
 		text-decoration: none;
 		background: var(--accent);
 		border-radius: var(--radius-sm);
+	}
+
+	.form-card {
+		padding: var(--space-5);
+	}
+
+	.crumbs a {
+		color: var(--cream-muted);
 	}
 </style>

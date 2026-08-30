@@ -282,11 +282,11 @@
 		font-size: var(--step--1);
 		font-weight: 600;
 		letter-spacing: 0.01em;
-		color: var(--muted-strong);
+		color: var(--ink-muted);
 	}
 
 	.req {
-		color: var(--accent-text);
+		color: var(--accent-deep);
 	}
 
 	input,
@@ -296,9 +296,9 @@
 		padding: 0.5625rem 0.6875rem;
 		font: inherit;
 		font-size: var(--step-0);
-		color: var(--text);
-		background: var(--surface);
-		border: 1px solid var(--border-strong);
+		color: var(--ink);
+		background: #fff;
+		border: 1px solid var(--border-cream);
 		border-radius: var(--radius-sm);
 		transition:
 			border-color 140ms var(--ease),
@@ -309,7 +309,7 @@
 	select:focus,
 	textarea:focus {
 		border-color: var(--accent);
-		box-shadow: 0 0 0 3px var(--accent-soft);
+		box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.18);
 		outline: none;
 	}
 
@@ -324,7 +324,7 @@
 
 	[aria-invalid='true']:focus {
 		border-color: var(--danger);
-		box-shadow: 0 0 0 3px var(--danger-soft);
+		box-shadow: 0 0 0 3px rgba(185, 28, 28, 0.18);
 	}
 
 	.err {
@@ -349,10 +349,10 @@
 		gap: var(--space-3);
 		margin: 0;
 		padding: var(--space-4);
-		background: var(--surface);
-		border: 1px solid var(--border);
+		background: #fff;
+		border: 1px solid var(--border-cream);
 		border-radius: var(--radius-lg);
-		box-shadow: var(--shadow-1);
+		box-shadow: none;
 	}
 
 	.ing-row {
@@ -376,8 +376,8 @@
 		margin-top: 0.4375rem;
 		font-size: var(--step--1);
 		font-weight: 600;
-		color: var(--accent-text);
-		background: var(--accent-soft);
+		color: var(--accent-deep);
+		background: var(--surface-2);
 		border-radius: var(--radius-full);
 	}
 
@@ -394,10 +394,10 @@
 		place-items: center;
 		font: inherit;
 		font-size: var(--step--1);
-		color: var(--muted);
+		color: var(--ink-muted);
 		cursor: pointer;
-		background: var(--surface);
-		border: 1px solid var(--border);
+		background: #fff;
+		border: 1px solid var(--border-cream);
 		border-radius: var(--radius-sm);
 		transition:
 			color 120ms var(--ease),
@@ -405,7 +405,7 @@
 	}
 
 	.icon:hover:not(:disabled) {
-		color: var(--accent-text);
+		color: var(--accent-deep);
 		border-color: var(--accent);
 	}
 

@@ -75,13 +75,41 @@
 	</main>
 
 	<footer class="footer">
-		<p>
-			Recipe data from <a href="https://www.themealdb.com/" rel="noreferrer">TheMealDB</a>. UI built
-			with
-			<a href="https://www.npmjs.com/package/recipe-ui-components" rel="noreferrer">
-				recipe-ui-components
-			</a>.
-		</p>
+		<div class="footer-inner">
+			<div class="footer-col">
+				<p class="footer-title">About Recipe Finder</p>
+				<p>
+					Browse recipes from a public database, keep your favourites, and plan a week of meals.
+					Everything you save stays in your own browser.
+				</p>
+			</div>
+
+			<div class="footer-col">
+				<p class="footer-title">Explore</p>
+				<ul>
+					{#each links as link (link.path)}
+						<li><a href={link.href}>{link.label}</a></li>
+					{/each}
+				</ul>
+			</div>
+
+			<div class="footer-col">
+				<p class="footer-title">Built with</p>
+				<ul>
+					<li>
+						<a href="https://www.themealdb.com/" rel="noreferrer">TheMealDB</a>
+					</li>
+					<li>
+						<a href="https://www.npmjs.com/package/recipe-ui-components" rel="noreferrer">
+							recipe-ui-components
+						</a>
+					</li>
+					<li>
+						<a href="https://svelte.dev/docs/kit" rel="noreferrer">SvelteKit</a>
+					</li>
+				</ul>
+			</div>
+		</div>
 	</footer>
 </div>
 
@@ -96,8 +124,8 @@
 		position: sticky;
 		top: 0;
 		z-index: 20;
-		background: color-mix(in srgb, var(--bg) 82%, transparent);
-		backdrop-filter: saturate(1.6) blur(12px);
+		background: color-mix(in srgb, var(--bg-deep) 88%, transparent);
+		backdrop-filter: saturate(1.4) blur(12px);
 		border-bottom: 1px solid var(--border);
 	}
 
@@ -116,22 +144,25 @@
 		display: inline-flex;
 		align-items: center;
 		gap: var(--space-2);
-		font-size: var(--step-1);
-		font-weight: 700;
-		letter-spacing: -0.02em;
-		color: var(--text);
+		color: var(--cream);
 		text-decoration: none;
 	}
 
 	.brand-mark {
 		display: grid;
 		place-items: center;
-		width: 1.875rem;
-		height: 1.875rem;
-		color: var(--accent-contrast);
-		background: linear-gradient(140deg, var(--accent), var(--accent-hover));
-		border-radius: var(--radius-sm);
-		box-shadow: var(--shadow-1);
+		width: 2rem;
+		height: 2rem;
+		color: var(--cream);
+		background: var(--accent);
+		border-radius: var(--radius-full);
+	}
+
+	/* The wordmark carries the script face, the nav stays sans for legibility. */
+	.brand-text {
+		font-family: var(--font-display);
+		font-size: var(--step-2);
+		letter-spacing: 0.01em;
 	}
 
 	nav ul {
@@ -145,60 +176,87 @@
 
 	nav a {
 		display: block;
-		padding: 0.4375rem 0.8125rem;
+		padding: 0.4375rem 0.875rem;
 		font-size: var(--step-0);
 		font-weight: 500;
-		color: var(--muted);
+		color: var(--cream-muted);
 		text-decoration: none;
 		border-radius: var(--radius-full);
 		transition:
-			color 140ms var(--ease),
-			background 140ms var(--ease);
+			color 150ms var(--ease),
+			background 150ms var(--ease);
 	}
 
 	nav a:hover {
-		color: var(--text);
-		background: var(--surface-2);
+		color: var(--cream);
+		background: var(--bg-soft);
 	}
 
 	nav a[aria-current='page'] {
-		color: var(--accent-contrast);
-		background: var(--accent);
-		box-shadow: var(--shadow-1);
+		color: var(--ink);
+		background: var(--cream);
 	}
 
 	.main {
 		flex: 1;
 		width: 100%;
-		max-width: var(--max-width);
-		margin: 0 auto;
-		padding: var(--space-6) var(--space-5) var(--space-7);
 	}
 
 	.footer {
+		margin-top: var(--space-8);
+		background: var(--bg-deep);
 		border-top: 1px solid var(--border);
-		background: var(--surface);
 	}
 
-	.footer p {
+	.footer-inner {
+		display: grid;
+		gap: var(--space-5);
 		max-width: var(--max-width);
 		margin: 0 auto;
-		padding: var(--space-4) var(--space-5);
+		padding: var(--space-6) var(--space-5);
 		font-size: var(--step--1);
-		color: var(--muted);
+		color: var(--cream-muted);
+	}
+
+	@media (min-width: 720px) {
+		.footer-inner {
+			grid-template-columns: 1.4fr 1fr 1fr;
+			gap: var(--space-6);
+		}
+	}
+
+	.footer-title {
+		margin-bottom: var(--space-3);
+		font-family: var(--font-display);
+		font-size: var(--step-1);
+		color: var(--cream);
+	}
+
+	.footer-col ul {
+		display: grid;
+		gap: var(--space-2);
+		margin: 0;
+		padding: 0;
+		list-style: none;
+	}
+
+	.footer-col a {
+		color: var(--cream-muted);
+		text-decoration: none;
+	}
+
+	.footer-col a:hover {
+		color: var(--cream);
+		text-decoration: underline;
 	}
 
 	@media (max-width: 520px) {
-		.brand-text {
-			font-size: var(--step-0);
-		}
-
 		.bar {
 			padding: var(--space-3) var(--space-4);
 		}
 
-		.main {
-			padding: var(--space-5) var(--space-4) var(--space-6);
+		.brand-text {
+			font-size: var(--step-1);
 		}
 	}
 </style>

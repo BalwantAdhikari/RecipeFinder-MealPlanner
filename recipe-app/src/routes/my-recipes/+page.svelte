@@ -25,57 +25,67 @@
 	<title>My recipes · Recipe Finder</title>
 </svelte:head>
 
-<div class="page-head">
-	<div>
-		<h1>My recipes</h1>
-		<p class="lede">
-			{userRecipes.count === 0
-				? 'Recipes you create are stored in this browser.'
-				: `${userRecipes.count} recipe${userRecipes.count === 1 ? '' : 's'}, stored in this browser.`}
-		</p>
-	</div>
-	<a class="btn btn--primary" href={resolve('/my-recipes/new')}>+ New recipe</a>
-</div>
-
-{#if pendingDelete}
-	<div class="confirm" role="alertdialog" aria-labelledby="confirm-title">
-		<p id="confirm-title">
-			Delete <strong>{pendingDelete.title}</strong>? This also removes it from your favorites and
-			meal plan, and cannot be undone.
-		</p>
-		<div class="confirm-actions">
-			<button class="btn btn--delete" onclick={confirmDelete}>Delete</button>
-			<button class="btn" onclick={() => (pendingDelete = null)}>Keep it</button>
+<div class="container">
+	<div class="page-head">
+		<div>
+			<h1>My recipes</h1>
+			<p class="lede">
+				{userRecipes.count === 0
+					? 'Recipes you create are stored in this browser.'
+					: `${userRecipes.count} recipe${userRecipes.count === 1 ? '' : 's'}, stored in this browser.`}
+			</p>
 		</div>
+		<a class="btn btn--primary" href={resolve('/my-recipes/new')}>+ New recipe</a>
 	</div>
-{/if}
 
-{#if userRecipes.count === 0}
-	<div class="empty-state">
-		<p>You have not added any recipes yet.</p>
-		<a class="btn btn--primary" href={resolve('/my-recipes/new')}>Add your first recipe</a>
-	</div>
-{:else}
-	<div class="card-grid">
-		{#each userRecipes.all as recipe (recipe.id)}
-			<recipe-card
-				use:setProps={{ recipe, isFavorite: favorites.has(recipe.id) }}
-				use:on={{
-					favoriteToggle: (e) => favorites.set(e.detail.recipeId, e.detail.isFavorite),
-					viewDetails: (e) => goto(resolve('/recipes/[id]', { id: e.detail.recipeId }))
-				}}
-			>
-				<span slot="badge" class="badge">Mine</span>
-				<a slot="actions" class="ghost" href={resolve('/my-recipes/[id]/edit', { id: recipe.id })}>
-					Edit
-				</a>
-				<button slot="actions" class="ghost ghost--danger" onclick={() => (pendingDelete = recipe)}>
-					Delete
-				</button>
-			</recipe-card>
-		{/each}
-	</div>
-{/if}
+	{#if pendingDelete}
+		<div class="confirm" role="alertdialog" aria-labelledby="confirm-title">
+			<p id="confirm-title">
+				Delete <strong>{pendingDelete.title}</strong>? This also removes it from your favorites and
+				meal plan, and cannot be undone.
+			</p>
+			<div class="confirm-actions">
+				<button class="btn btn--delete" onclick={confirmDelete}>Delete</button>
+				<button class="btn" onclick={() => (pendingDelete = null)}>Keep it</button>
+			</div>
+		</div>
+	{/if}
+
+	{#if userRecipes.count === 0}
+		<div class="empty-state">
+			<p>You have not added any recipes yet.</p>
+			<a class="btn btn--primary" href={resolve('/my-recipes/new')}>Add your first recipe</a>
+		</div>
+	{:else}
+		<div class="card-grid">
+			{#each userRecipes.all as recipe (recipe.id)}
+				<recipe-card
+					use:setProps={{ recipe, isFavorite: favorites.has(recipe.id) }}
+					use:on={{
+						favoriteToggle: (e) => favorites.set(e.detail.recipeId, e.detail.isFavorite),
+						viewDetails: (e) => goto(resolve('/recipes/[id]', { id: e.detail.recipeId }))
+					}}
+				>
+					<span slot="badge" class="badge">Mine</span>
+					<a
+						slot="actions"
+						class="ghost"
+						href={resolve('/my-recipes/[id]/edit', { id: recipe.id })}
+					>
+						Edit
+					</a>
+					<button
+						slot="actions"
+						class="ghost ghost--danger"
+						onclick={() => (pendingDelete = recipe)}
+					>
+						Delete
+					</button>
+				</recipe-card>
+			{/each}
+		</div>
+	{/if}
+</div>
 
 <style>
 	h1 {

@@ -93,120 +93,122 @@
 	<title>Weekly meal plan · Recipe Finder</title>
 </svelte:head>
 
-<div class="page-head">
-	<div>
-		<h1>Weekly meal plan</h1>
-		<p class="lede">
-			{planned === 0
-				? 'Assign recipes to any day. Drag a card here, or use the + Add buttons.'
-				: `${planned} of 21 slots planned.`}
-		</p>
-	</div>
-	{#if planned > 0}
-		<button class="btn btn--danger" onclick={() => mealPlan.clear()}>Clear week</button>
-	{/if}
-</div>
-
-{#if picking}
-	<div class="picker" role="dialog" aria-label="Choose a recipe">
-		<div class="picker-head">
-			<strong>
-				Choose a recipe for {picking.slot} on {picking.day}
-			</strong>
-			<button class="btn btn--sm" onclick={() => (picking = null)} aria-label="Close picker"
-				>Close</button
-			>
-		</div>
-
-		<!-- Focused programmatically rather than with the autofocus attribute, which
-		     is flagged for a11y: it steals focus on page load. Here the input only
-		     appears in response to a click, so moving focus to it is expected. -->
-		<input
-			bind:value={pickerQuery}
-			placeholder="Filter by name…"
-			aria-label="Filter recipes"
-			use:focusOnMount
-		/>
-
-		{#if filteredCandidates.length === 0}
-			<p class="muted">
-				No matches. {candidates.length === 0
-					? 'Add a recipe or star some favorites first.'
-					: 'Try a different name.'}
+<div class="container">
+	<div class="page-head">
+		<div>
+			<h1>Weekly meal plan</h1>
+			<p class="lede">
+				{planned === 0
+					? 'Assign recipes to any day. Drag a card here, or use the + Add buttons.'
+					: `${planned} of 21 slots planned.`}
 			</p>
-		{:else}
-			<ul class="candidates">
-				{#each filteredCandidates as recipe (recipe.id)}
-					<li>
-						<button onclick={() => assign(recipe)}>
-							{#if recipe.image}
-								<img src={recipe.image} alt="" />
-							{:else}
-								<span class="thumb-placeholder" aria-hidden="true">🍽</span>
-							{/if}
-							<span class="cand-title">{recipe.title}</span>
-							{#if recipe.source === 'user'}<span class="mine">mine</span>{/if}
-						</button>
-					</li>
-				{/each}
-			</ul>
+		</div>
+		{#if planned > 0}
+			<button class="btn btn--danger" onclick={() => mealPlan.clear()}>Clear week</button>
 		{/if}
 	</div>
-{/if}
 
-<h2 class="visually-hidden">Your week</h2>
+	{#if picking}
+		<div class="picker" role="dialog" aria-label="Choose a recipe">
+			<div class="picker-head">
+				<strong>
+					Choose a recipe for {picking.slot} on {picking.day}
+				</strong>
+				<button class="btn btn--sm" onclick={() => (picking = null)} aria-label="Close picker"
+					>Close</button
+				>
+			</div>
 
-<div class="week">
-	{#each DAYS as day (day)}
-		<meal-plan-day
-			use:setProps={{
-				day,
-				meals: mealPlan.forDay(day),
-				isToday: day === currentDay
-			}}
-			use:on={{
-				addMealRequest: (e) => {
-					picking = { day: e.detail.day as Day, slot: e.detail.slot };
-					pickerQuery = '';
-				},
-				removeMeal: (e) => mealPlan.unassign(e.detail.day as Day, e.detail.slot),
-				mealDrop: async (e) => {
-					const recipe = await resolveDropped(e.detail.recipeId);
-					if (recipe) mealPlan.assign(e.detail.day as Day, e.detail.slot, recipe);
-				}
-			}}
-		>
-			<small slot="footer" class="day-summary">
-				{mealPlan.filledCount(day)}/3 planned
-			</small>
-		</meal-plan-day>
-	{/each}
-</div>
+			<!-- Focused programmatically rather than with the autofocus attribute, which
+		     is flagged for a11y: it steals focus on page load. Here the input only
+		     appears in response to a click, so moving focus to it is expected. -->
+			<input
+				bind:value={pickerQuery}
+				placeholder="Filter by name…"
+				aria-label="Filter recipes"
+				use:focusOnMount
+			/>
 
-<section class="drag-source">
-	<h2>Drag any of these onto a slot</h2>
-	<p class="lede">Or open a recipe and use “Add to meal plan”.</p>
-	<!-- tabindex so the overflow region can be scrolled by keyboard; without it
+			{#if filteredCandidates.length === 0}
+				<p class="muted">
+					No matches. {candidates.length === 0
+						? 'Add a recipe or star some favorites first.'
+						: 'Try a different name.'}
+				</p>
+			{:else}
+				<ul class="candidates">
+					{#each filteredCandidates as recipe (recipe.id)}
+						<li>
+							<button onclick={() => assign(recipe)}>
+								{#if recipe.image}
+									<img src={recipe.image} alt="" />
+								{:else}
+									<span class="thumb-placeholder" aria-hidden="true">🍽</span>
+								{/if}
+								<span class="cand-title">{recipe.title}</span>
+								{#if recipe.source === 'user'}<span class="mine">mine</span>{/if}
+							</button>
+						</li>
+					{/each}
+				</ul>
+			{/if}
+		</div>
+	{/if}
+
+	<h2 class="visually-hidden">Your week</h2>
+
+	<div class="week">
+		{#each DAYS as day (day)}
+			<meal-plan-day
+				use:setProps={{
+					day,
+					meals: mealPlan.forDay(day),
+					isToday: day === currentDay
+				}}
+				use:on={{
+					addMealRequest: (e) => {
+						picking = { day: e.detail.day as Day, slot: e.detail.slot };
+						pickerQuery = '';
+					},
+					removeMeal: (e) => mealPlan.unassign(e.detail.day as Day, e.detail.slot),
+					mealDrop: async (e) => {
+						const recipe = await resolveDropped(e.detail.recipeId);
+						if (recipe) mealPlan.assign(e.detail.day as Day, e.detail.slot, recipe);
+					}
+				}}
+			>
+				<small slot="footer" class="day-summary">
+					{mealPlan.filledCount(day)}/3 planned
+				</small>
+			</meal-plan-day>
+		{/each}
+	</div>
+
+	<section class="drag-source">
+		<h2>Drag any of these onto a slot</h2>
+		<p class="lede">Or open a recipe and use “Add to meal plan”.</p>
+		<!-- tabindex so the overflow region can be scrolled by keyboard; without it
 	     axe flags scrollable-region-focusable and the strip is mouse-only.
 	     Svelte's a11y rule objects to a nonnegative tabindex on a noninteractive
 	     role, but WAI-ARIA guidance is explicit that scroll containers should be
 	     focusable, and axe enforces it — so the rule is suppressed here rather
 	     than leaving the strip keyboard-inaccessible. -->
-	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-	<div class="strip" role="list" tabindex="0" aria-label="Recipes available to drag">
-		{#each data.browse.slice(0, 8) as recipe (recipe.id)}
-			<div
-				class="chip-card"
-				draggable="true"
-				ondragstart={(e) => e.dataTransfer?.setData('text/plain', recipe.id)}
-				role="listitem"
-			>
-				{#if recipe.image}<img src={recipe.image} alt="" />{/if}
-				<span>{recipe.title}</span>
-			</div>
-		{/each}
-	</div>
-</section>
+		<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+		<div class="strip" role="list" tabindex="0" aria-label="Recipes available to drag">
+			{#each data.browse.slice(0, 8) as recipe (recipe.id)}
+				<div
+					class="chip-card"
+					draggable="true"
+					ondragstart={(e) => e.dataTransfer?.setData('text/plain', recipe.id)}
+					role="listitem"
+				>
+					{#if recipe.image}<img src={recipe.image} alt="" />{/if}
+					<span>{recipe.title}</span>
+				</div>
+			{/each}
+		</div>
+	</section>
+</div>
 
 <style>
 	h1 {
@@ -229,10 +231,12 @@
 		}
 	}
 
+	/* Projected into meal-plan-day's cream card via the footer slot, so this is
+	   ink context even though the surrounding page is brown. */
 	.day-summary {
 		font-size: 0.6875rem;
 		font-weight: 500;
-		color: var(--muted);
+		color: var(--ink-muted);
 	}
 
 	.picker {
@@ -243,7 +247,7 @@
 		gap: var(--space-3);
 		margin-bottom: var(--space-5);
 		padding: var(--space-4);
-		background: var(--surface);
+		background: var(--bg-soft);
 		border: 1px solid var(--accent);
 		border-radius: var(--radius-lg);
 		box-shadow: var(--shadow-3);
@@ -261,7 +265,7 @@
 		padding: 0.5rem 0.6875rem;
 		font: inherit;
 		font-size: var(--step-0);
-		color: var(--text);
+		color: var(--cream);
 		background: var(--bg);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-sm);
@@ -285,7 +289,7 @@
 		padding: var(--space-2);
 		font: inherit;
 		font-size: var(--step-0);
-		color: var(--text);
+		color: var(--cream);
 		text-align: left;
 		cursor: pointer;
 		background: transparent;
@@ -297,7 +301,7 @@
 	}
 
 	.candidates button:hover {
-		background: var(--surface-2);
+		background: var(--bg-soft);
 		border-color: var(--border);
 	}
 
@@ -313,7 +317,7 @@
 	.thumb-placeholder {
 		display: grid;
 		place-items: center;
-		background: var(--surface-2);
+		background: var(--bg-soft);
 	}
 
 	.cand-title {
@@ -359,7 +363,7 @@
 		font-size: var(--step--1);
 		font-weight: 500;
 		cursor: grab;
-		background: var(--surface);
+		background: var(--bg-soft);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
 		box-shadow: var(--shadow-1);
@@ -393,6 +397,6 @@
 
 	.muted {
 		font-size: var(--step-0);
-		color: var(--muted);
+		color: var(--cream-muted);
 	}
 </style>

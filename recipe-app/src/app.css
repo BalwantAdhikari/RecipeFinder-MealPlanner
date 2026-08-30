@@ -1,52 +1,75 @@
 /**
  * Design tokens and global styles.
  *
- * Two things to know before changing colours here:
+ * The theme is a warm brown page with cream surfaces, in the style of a print
+ * recipe magazine. Two things follow from that and matter when editing:
  *
- * 1. **Text and fill roles are separate tokens.** One hue cannot do both:
- *    `--accent` is 5.18:1 paired with white as a button fill, but the same hue
- *    as link text on the dark background is only 3.84:1. Hence `--accent-text`
- *    and `--danger-text`, which the dark scheme overrides independently.
- * 2. **`--muted` is only safe on `--bg` and `--surface`.** On `--surface-2` it
- *    measures 4.26:1, under AA. Use `--muted-strong` (6.78:1) for text on the
- *    sunken surface, including the components' chips.
+ * 1. **There are two colour contexts, not one.** Text sits either on the brown
+ *    page (`--bg`, `--bg-deep`, `--bg-soft`) where it must be cream, or on a
+ *    cream card (`--surface`, `--surface-2`) where it must be ink. Hence the
+ *    `--cream*` and `--ink*` token pairs. Using an ink colour on the brown page,
+ *    or vice versa, is the easy mistake here.
+ * 2. **Single theme, deliberately.** The page is already dark, so there is no
+ *    `prefers-color-scheme` inversion — a "light mode" version of this design
+ *    would be a different design. `color-scheme: light` because every form
+ *    control sits on a cream surface.
  *
- * Every pair above is verified; re-check with axe-core after editing.
+ * Every pair below is contrast-checked. Interactive borders use
+ * `--border-strong` (3.85:1 on the page); `--border` is decorative only.
  */
 
-:root {
-	/* Warm neutrals rather than pure greys — this is a food app, and a stark
-	   #fff/#000 scale makes the photography look clinical. */
-	--bg: #fbf9f7;
-	--surface: #ffffff;
-	--surface-2: #f4f1ee;
-	--border: #e7e2dc;
-	--border-strong: #d6cfc7;
+/* Kaushan Script, self-hosted so there is no third-party request at runtime.
+   SIL Open Font License 1.1 — see static/fonts/OFL.txt. */
+@font-face {
+	font-family: 'Kaushan Script';
+	font-style: normal;
+	font-weight: 400;
+	font-display: swap;
+	src: url('/fonts/kaushan-script-latin.woff2') format('woff2');
+	unicode-range:
+		U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+2074,
+		U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
 
-	--text: #1c1917;
-	--muted: #78716c;
-	--muted-strong: #57534e;
+:root {
+	/* Brown page */
+	--bg: #5b3418;
+	--bg-deep: #43250f;
+	--bg-soft: #6b4020;
+
+	/* Cream surfaces */
+	--surface: #f8f2e2;
+	--surface-2: #ece1c6;
+
+	/* Text on brown */
+	--cream: #f8f2e2;
+	--cream-muted: #dfd0b2;
+
+	/* Text on cream */
+	--ink: #3a2413;
+	--ink-muted: #6d5133;
+
+	--border: #7a4f28;
+	--border-strong: #b8946e;
+	--border-cream: #d9caa8;
 
 	--accent: #c2410c;
-	--accent-hover: #9a3412;
-	--accent-soft: #fff1e9;
-	--accent-contrast: #ffffff;
-	--accent-text: #b03d0b;
+	--accent-deep: #9a3412;
+	--accent-contrast: #f8f2e2;
 
-	--danger: #dc2626;
-	--danger-text: #b91c1c;
-	--danger-soft: #fef2f2;
-	--danger-border: #fecaca;
+	--danger: #b91c1c;
+	--danger-soft: #f7e3df;
+	--danger-border: #d9a49c;
+	--danger-text: #8f1414;
 
-	/* Type scale, 1.25 ratio from 0.875rem. */
 	--step--1: 0.8125rem;
 	--step-0: 0.9375rem;
 	--step-1: 1.0625rem;
 	--step-2: 1.375rem;
-	--step-3: 1.75rem;
-	--step-4: 2.25rem;
+	--step-3: 1.875rem;
+	--step-4: 2.5rem;
+	--step-5: 3.25rem;
 
-	/* Spacing scale — one source of rhythm instead of ad-hoc rem values. */
 	--space-1: 0.25rem;
 	--space-2: 0.5rem;
 	--space-3: 0.75rem;
@@ -54,50 +77,24 @@
 	--space-5: 1.5rem;
 	--space-6: 2rem;
 	--space-7: 3rem;
+	--space-8: 4.5rem;
 
 	--radius-sm: 8px;
 	--radius: 12px;
 	--radius-lg: 18px;
 	--radius-full: 999px;
 
-	/* Layered elevation. Two-part shadows read as depth rather than as a blur. */
-	--shadow-1: 0 1px 2px rgba(28, 25, 23, 0.06), 0 1px 3px rgba(28, 25, 23, 0.04);
-	--shadow-2: 0 2px 4px rgba(28, 25, 23, 0.06), 0 8px 16px -4px rgba(28, 25, 23, 0.08);
-	--shadow-3: 0 4px 8px rgba(28, 25, 23, 0.06), 0 16px 32px -8px rgba(28, 25, 23, 0.14);
+	--shadow-1: 0 1px 2px rgba(20, 10, 4, 0.18);
+	--shadow-2: 0 4px 14px rgba(20, 10, 4, 0.24);
+	--shadow-3: 0 10px 30px rgba(20, 10, 4, 0.34);
 
 	--max-width: 1180px;
 	--font:
 		ui-sans-serif, system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+	--font-display: 'Kaushan Script', 'Segoe Script', 'Brush Script MT', cursive;
 	--font-mono: ui-monospace, 'SF Mono', SFMono-Regular, Menlo, Consolas, monospace;
 
 	--ease: cubic-bezier(0.4, 0, 0.2, 1);
-}
-
-@media (prefers-color-scheme: dark) {
-	:root {
-		--bg: #0c0a09;
-		--surface: #1c1917;
-		--surface-2: #292524;
-		--border: #35302c;
-		--border-strong: #4a433d;
-
-		--text: #fafaf9;
-		--muted: #a8a29e;
-		--muted-strong: #a8a29e;
-
-		--accent-soft: #2a1206;
-		--accent-text: #fb923c;
-
-		--danger-text: #f87171;
-		--danger-soft: #2a0f0f;
-		--danger-border: #7f1d1d;
-
-		/* Shadows read as almost nothing on a dark background; borders carry the
-		   separation instead, so these stay subtle and do the rest with depth. */
-		--shadow-1: 0 1px 2px rgba(0, 0, 0, 0.5);
-		--shadow-2: 0 4px 12px rgba(0, 0, 0, 0.55);
-		--shadow-3: 0 8px 28px rgba(0, 0, 0, 0.6);
-	}
 }
 
 *,
@@ -107,7 +104,9 @@
 }
 
 html {
-	color-scheme: light dark;
+	/* Form controls all live on cream surfaces, so the light UA scheme is right
+	   even though the page itself is dark. */
+	color-scheme: light;
 	-webkit-text-size-adjust: 100%;
 }
 
@@ -115,9 +114,11 @@ body {
 	margin: 0;
 	font-family: var(--font);
 	font-size: var(--step-0);
-	line-height: 1.6;
-	color: var(--text);
-	background: var(--bg);
+	line-height: 1.65;
+	color: var(--cream);
+	background-color: var(--bg);
+	/* A faint vertical warmth so a tall page does not read as one flat slab. */
+	background-image: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 40rem);
 	-webkit-font-smoothing: antialiased;
 	-moz-osx-font-smoothing: grayscale;
 }
@@ -127,22 +128,29 @@ h2,
 h3 {
 	margin: 0;
 	line-height: 1.2;
-	letter-spacing: -0.02em;
 	text-wrap: balance;
-	font-weight: 650;
 }
 
-h1 {
+/* Section and page titles use the script face. Kept to headings only: it is a
+   display font and unreadable at body sizes or in long runs. */
+h1,
+.display {
+	font-family: var(--font-display);
+	font-weight: 400;
 	font-size: var(--step-4);
-	letter-spacing: -0.03em;
+	line-height: 1.15;
+	letter-spacing: 0.01em;
 }
 
 h2 {
 	font-size: var(--step-2);
+	font-weight: 650;
+	letter-spacing: -0.01em;
 }
 
 h3 {
 	font-size: var(--step-1);
+	font-weight: 650;
 }
 
 p {
@@ -150,9 +158,9 @@ p {
 }
 
 a {
-	color: var(--accent-text);
+	color: inherit;
 	text-decoration-thickness: 1px;
-	text-underline-offset: 2px;
+	text-underline-offset: 3px;
 }
 
 img {
@@ -160,7 +168,7 @@ img {
 }
 
 :focus-visible {
-	outline: 2px solid var(--accent);
+	outline: 2px solid var(--cream);
 	outline-offset: 2px;
 	border-radius: 4px;
 }
@@ -181,7 +189,138 @@ code {
 	white-space: nowrap;
 }
 
-/* Shared page header: title, supporting line, optional action on the right. */
+/* Centred script heading with a short rule under it, as on the reference. */
+.section-head {
+	margin-bottom: var(--space-5);
+	text-align: center;
+}
+
+.section-head h2 {
+	font-family: var(--font-display);
+	font-weight: 400;
+	font-size: var(--step-3);
+	letter-spacing: 0.01em;
+}
+
+/* Rule sits directly under the title, not after the supporting line. */
+.section-head h2::after {
+	content: '';
+	display: block;
+	width: 3.5rem;
+	height: 2px;
+	margin: var(--space-3) auto 0;
+	background: var(--border-strong);
+	border-radius: var(--radius-full);
+}
+
+.section-head .lede {
+	margin-top: var(--space-2);
+	color: var(--cream-muted);
+}
+
+/* Page gutter. `.main` is full-bleed so the hero can span the viewport, so each
+   page wraps its own content in this. */
+.container {
+	width: 100%;
+	max-width: var(--max-width);
+	margin: 0 auto;
+	padding: var(--space-6) var(--space-5) var(--space-7);
+}
+
+.container--tight {
+	max-width: 60rem;
+}
+
+/* ------------------------------------------------------------------- hero */
+
+.hero {
+	position: relative;
+	display: grid;
+	place-items: center;
+	min-height: min(30rem, 62vh);
+	padding: var(--space-8) var(--space-5);
+	overflow: hidden;
+	text-align: center;
+	background-color: var(--bg-deep);
+}
+
+.hero__img {
+	position: absolute;
+	inset: 0;
+	width: 100%;
+	height: 100%;
+	object-fit: cover;
+}
+
+/* The scrim is what makes cream text on a photograph legible. Without a fixed
+   floor under it the contrast depends on whatever image loaded, which is not
+   something to leave to chance. */
+.hero__scrim {
+	position: absolute;
+	inset: 0;
+	background:
+		linear-gradient(180deg, rgba(30, 15, 5, 0.45), rgba(30, 15, 5, 0.72)),
+		radial-gradient(ellipse at 50% 50%, rgba(30, 15, 5, 0.35), rgba(30, 15, 5, 0.8));
+}
+
+.hero__inner {
+	position: relative;
+	display: grid;
+	gap: var(--space-4);
+	justify-items: center;
+	max-width: 44rem;
+}
+
+.hero h1 {
+	font-size: clamp(2.25rem, 7vw, var(--step-5));
+	text-shadow: 0 2px 12px rgba(20, 10, 4, 0.5);
+}
+
+.hero .lede {
+	max-width: 40ch;
+	color: var(--cream);
+	text-shadow: 0 1px 8px rgba(20, 10, 4, 0.6);
+}
+
+/* --------------------------------------------------------- feature strip */
+
+.features {
+	display: grid;
+	gap: var(--space-5);
+	grid-template-columns: repeat(2, minmax(0, 1fr));
+	max-width: var(--max-width);
+	margin: 0 auto;
+	padding: var(--space-6) var(--space-5) 0;
+	text-align: center;
+}
+
+@media (min-width: 760px) {
+	.features {
+		grid-template-columns: repeat(4, minmax(0, 1fr));
+	}
+}
+
+.feature {
+	display: grid;
+	gap: var(--space-2);
+	justify-items: center;
+}
+
+.feature svg {
+	color: var(--cream);
+	opacity: 0.9;
+}
+
+.feature strong {
+	font-size: var(--step-0);
+	font-weight: 600;
+}
+
+.feature span {
+	font-size: var(--step--1);
+	color: var(--cream-muted);
+}
+
 .page-head {
 	display: flex;
 	flex-wrap: wrap;
@@ -194,15 +333,15 @@ code {
 .page-head .lede {
 	margin-top: var(--space-2);
 	max-width: 58ch;
-	color: var(--muted);
+	color: var(--cream-muted);
 }
 
 .eyebrow {
 	font-size: var(--step--1);
 	font-weight: 600;
-	letter-spacing: 0.08em;
+	letter-spacing: 0.14em;
 	text-transform: uppercase;
-	color: var(--accent-text);
+	color: var(--cream-muted);
 }
 
 /* ------------------------------------------------------------------ buttons */
@@ -212,70 +351,91 @@ code {
 	align-items: center;
 	justify-content: center;
 	gap: var(--space-2);
-	padding: 0.5rem 0.9375rem;
+	padding: 0.5625rem 1rem;
 	font: inherit;
 	font-size: var(--step-0);
-	font-weight: 550;
+	font-weight: 600;
 	line-height: 1.2;
-	color: var(--text);
+	color: var(--cream);
 	text-decoration: none;
 	white-space: nowrap;
 	cursor: pointer;
-	background: var(--surface);
+	background: transparent;
 	border: 1px solid var(--border-strong);
-	border-radius: var(--radius-sm);
+	border-radius: var(--radius-full);
 	transition:
-		background 140ms var(--ease),
-		border-color 140ms var(--ease),
-		color 140ms var(--ease),
-		transform 140ms var(--ease);
+		background 150ms var(--ease),
+		border-color 150ms var(--ease),
+		color 150ms var(--ease),
+		transform 150ms var(--ease);
 }
 
 .btn:hover {
-	border-color: var(--accent);
-	color: var(--accent-text);
+	color: var(--ink);
+	background: var(--cream);
+	border-color: var(--cream);
 }
 
 .btn:active {
 	transform: translateY(1px);
 }
 
+/* Cream pill, as the reference hero CTA. */
 .btn--primary {
-	color: var(--accent-contrast);
-	background: var(--accent);
-	border-color: var(--accent);
-	box-shadow: var(--shadow-1);
+	color: var(--ink);
+	background: var(--cream);
+	border-color: var(--cream);
+	box-shadow: var(--shadow-2);
 }
 
 .btn--primary:hover {
-	color: var(--accent-contrast);
-	background: var(--accent-hover);
-	border-color: var(--accent-hover);
-}
-
-.btn--ghost {
-	background: transparent;
-	border-color: var(--border);
-}
-
-.btn--danger:hover {
-	color: var(--danger-text);
-	border-color: var(--danger);
+	color: var(--cream);
+	background: var(--accent);
+	border-color: var(--accent);
 }
 
 .btn--sm {
-	padding: 0.375rem 0.6875rem;
+	padding: 0.375rem 0.75rem;
 	font-size: var(--step--1);
+}
+
+/* Buttons that sit *on* a cream surface need the inverse treatment. */
+.on-cream .btn,
+.btn--on-cream {
+	color: var(--ink);
+	border-color: var(--border-cream);
+}
+
+.on-cream .btn:hover,
+.btn--on-cream:hover {
+	color: var(--accent-contrast);
+	background: var(--accent);
+	border-color: var(--accent);
+}
+
+.on-cream .btn--primary,
+.btn--primary.btn--on-cream {
+	color: var(--accent-contrast);
+	background: var(--accent);
+	border-color: var(--accent);
+}
+
+.on-cream .btn--primary:hover,
+.btn--primary.btn--on-cream:hover {
+	background: var(--accent-deep);
+	border-color: var(--accent-deep);
 }
 
 /* ------------------------------------------------------- panels and surfaces */
 
-.panel {
+/* A cream card. Anything inside inherits ink text, so `.on-cream` also flips
+   the button treatment. */
+.card {
 	padding: var(--space-4);
+	color: var(--ink);
 	background: var(--surface);
-	border: 1px solid var(--border);
 	border-radius: var(--radius-lg);
-	box-shadow: var(--shadow-1);
+	box-shadow: var(--shadow-2);
 }
 
 .empty-state {
@@ -284,9 +444,8 @@ code {
 	justify-items: center;
 	padding: var(--space-7) var(--space-4);
 	text-align: center;
-	color: var(--muted);
-	background:
-		radial-gradient(circle at 50% 0%, var(--accent-soft), transparent 70%), var(--surface);
+	color: var(--cream-muted);
+	background: var(--bg-soft);
 	border: 1px dashed var(--border-strong);
 	border-radius: var(--radius-lg);
 }
@@ -299,10 +458,10 @@ code {
 
 /* --------------------------------------------- theming the Stencil components
  *
- * Everything below crosses the shadow boundary, either through the custom
- * properties each component exposes or through its `part` names. The components
- * are consumed from npm, so this is the only way to restyle them — and the
- * reason they expose parts at all.
+ * The components render cream cards on the brown page, so every text token maps
+ * to the ink scale and every surface to the cream scale. This all crosses the
+ * shadow boundary through the custom properties and part names the library
+ * exposes — the only route available, since it is consumed from npm.
  */
 
 recipe-card,
@@ -310,44 +469,37 @@ recipe-search-bar,
 recipe-filter-panel,
 meal-plan-day,
 recipe-rating {
-	/* recipe-card */
 	--recipe-card-bg: var(--surface);
-	--recipe-card-border: var(--border);
-	--recipe-card-text: var(--text);
-	--recipe-card-muted: var(--muted-strong);
-	--recipe-card-chip-text: var(--muted-strong);
+	--recipe-card-border: transparent;
+	--recipe-card-text: var(--ink);
+	--recipe-card-muted: var(--ink-muted);
+	--recipe-card-chip-text: var(--ink-muted);
 	--recipe-card-chip-bg: var(--surface-2);
 	--recipe-card-accent: var(--accent);
 	--recipe-card-radius: var(--radius-lg);
-	--recipe-card-shadow: var(--shadow-1);
+	--recipe-card-shadow: var(--shadow-2);
+	--recipe-card-media-bg: var(--surface-2);
 
-	/* recipe-search-bar */
 	--search-bg: var(--surface);
-	--search-border: var(--border-strong);
-	--search-text: var(--text);
-	--search-muted: var(--muted);
+	--search-border: transparent;
+	--search-text: var(--ink);
+	--search-muted: var(--ink-muted);
 	--search-accent: var(--accent);
-	--search-radius: var(--radius);
+	--search-radius: var(--radius-full);
 
-	/* recipe-filter-panel */
 	--filter-bg: transparent;
 	--filter-border: transparent;
-	--filter-text: var(--text);
-	--filter-muted: var(--muted);
-	--filter-accent: var(--accent-text);
+	--filter-text: var(--cream);
+	--filter-muted: var(--cream-muted);
+	--filter-accent: var(--cream);
 
-	/* meal-plan-day */
 	--day-bg: var(--surface);
-	--day-border: var(--border);
-	--day-text: var(--text);
-	/* This one token colours both the day name (on --day-bg) and the slot labels
-	   (on --day-slot-bg = --surface-2), where plain --muted is 4.26:1. Must be
-	   the stronger value. */
-	--day-muted: var(--muted-strong);
+	--day-border: transparent;
+	--day-text: var(--ink);
+	--day-muted: var(--ink-muted);
 	--day-accent: var(--accent);
 	--day-slot-bg: var(--surface-2);
 
-	/* recipe-rating */
 	--rating-accent: var(--accent);
 	--rating-size: 1.0625rem;
 }
@@ -361,34 +513,26 @@ meal-plan-day {
 	display: block;
 }
 
-/* Cards lift on hover. Done here rather than in the library so the motion
-   matches the rest of the app, and so `prefers-reduced-motion` is respected in
-   one place. */
 recipe-card::part(card) {
 	overflow: hidden;
 	border-radius: var(--radius-lg);
-	box-shadow: var(--shadow-1);
+	box-shadow: var(--shadow-2);
 	transition:
 		box-shadow 200ms var(--ease),
-		transform 200ms var(--ease),
-		border-color 200ms var(--ease);
+		transform 200ms var(--ease);
 }
 
 recipe-card:hover::part(card) {
-	transform: translateY(-3px);
+	transform: translateY(-4px);
 	box-shadow: var(--shadow-3);
-	border-color: var(--border-strong);
 }
 
 /* The library sets `height: 100%` on this image inside a box whose height comes
    from `aspect-ratio: 4/3`. That is circular, so the browser falls back to the
    image's intrinsic ratio — TheMealDB serves squares, which made cards with a
-   photo 269px tall while the no-image placeholder stayed at the correct 202px.
-   Restating the ratio here with an auto height makes every card's media the
-   same height. Fixed properly in the library for the next release.
-
-   No hover zoom on the image: the library's media wrapper has no overflow
-   clipping, so a scaled image bleeds over the title. */
+   photo taller than the no-image placeholder. Restating the ratio with an auto
+   height keeps every card's media identical. Fixed in the library for the next
+   release. */
 recipe-card::part(image) {
 	height: auto;
 	aspect-ratio: 4 / 3;
@@ -398,8 +542,8 @@ recipe-card::part(image) {
 recipe-card::part(title) {
 	font-size: var(--step-1);
 	font-weight: 650;
-	letter-spacing: -0.015em;
-	/* Two lines then ellipsis, so a long title cannot shove the footer down and
+	letter-spacing: -0.01em;
+	/* Two lines then ellipsis, so a long title cannot push the footer down and
 	   make one card in a row taller than the rest. */
 	display: -webkit-box;
 	-webkit-line-clamp: 2;
@@ -407,26 +551,43 @@ recipe-card::part(title) {
 	overflow: hidden;
 }
 
-meal-plan-day::part(day) {
-	border-radius: var(--radius-lg);
-	box-shadow: var(--shadow-1);
-	transition: box-shadow 200ms var(--ease);
+recipe-search-bar::part(field) {
+	font-size: var(--step-0);
 }
 
-meal-plan-day:hover::part(day) {
+recipe-search-bar::part(submit) {
+	border-radius: var(--radius-full);
+}
+
+meal-plan-day::part(day) {
+	border-radius: var(--radius-lg);
 	box-shadow: var(--shadow-2);
 }
 
 meal-plan-day::part(slot) {
 	border-radius: var(--radius-sm);
-	transition:
-		background 140ms var(--ease),
-		border-color 140ms var(--ease);
 }
 
 recipe-filter-panel::part(select) {
-	border-radius: var(--radius-sm);
-	border-color: var(--border-strong);
+	color: var(--ink);
+	background: var(--surface);
+	border-color: var(--border-cream);
+	border-radius: var(--radius-full);
+}
+
+/* The published 0.1.0 hardcodes `.chip { background: #27272a }` inside its own
+   `prefers-color-scheme: dark` block. Chips are not an exposed `part` and that
+   version has no chip-background variable, so the dark fill cannot be
+   overridden from here — only the text colour can. When the OS is dark, chip
+   text therefore has to be light to stay readable on that fill.
+   `--recipe-card-muted` is the only token 0.1.0 uses for it.
+   0.1.1 replaces the hardcoded rule with `--recipe-card-chip-bg`, after which
+   this block can go. */
+@media (prefers-color-scheme: dark) {
+	recipe-card {
+		--recipe-card-muted: #e5ded2;
+		--recipe-card-chip-text: #e5ded2;
+	}
 }
 
 @media (prefers-reduced-motion: reduce) {

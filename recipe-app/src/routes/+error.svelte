@@ -12,20 +12,22 @@
 	<title>{status} · Recipe Finder</title>
 </svelte:head>
 
-<div class="wrap">
-	<p class="status">{status}</p>
-	<h1>
-		{#if status === 404}
-			We could not find that page
-		{:else}
-			Something went wrong
-		{/if}
-	</h1>
-	<p class="detail">{message}</p>
+<div class="container container--tight">
+	<div class="wrap">
+		<p class="status">{status}</p>
+		<h1>
+			{#if status === 404}
+				We could not find that page
+			{:else}
+				Something went wrong
+			{/if}
+		</h1>
+		<p class="detail">{message}</p>
 
-	<div class="actions">
-		<a class="cta" href={resolve('/')}>Back to discovery</a>
-		<a class="ghost" href={resolve('/my-recipes')}>My recipes</a>
+		<div class="actions">
+			<a class="cta" href={resolve('/')}>Back to discovery</a>
+			<a class="ghost" href={resolve('/my-recipes')}>My recipes</a>
+		</div>
 	</div>
 </div>
 

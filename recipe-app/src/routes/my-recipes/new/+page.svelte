@@ -15,22 +15,26 @@
 	<title>New recipe · Recipe Finder</title>
 </svelte:head>
 
-<nav class="crumbs" aria-label="Breadcrumb">
-	<a href={resolve('/my-recipes')}>My recipes</a> / New
-</nav>
+<div class="container container--tight">
+	<nav class="crumbs" aria-label="Breadcrumb">
+		<a href={resolve('/my-recipes')}>My recipes</a> / New
+	</nav>
 
-<h1>New recipe</h1>
+	<h1>New recipe</h1>
 
-<RecipeForm
-	bind:draft
-	categories={data.categories}
-	submitLabel="Save recipe"
-	onsubmit={(recipe) => {
-		const created = userRecipes.create(recipe);
-		goto(resolve('/recipes/[id]', { id: created.id }));
-	}}
-	oncancel={() => goto(resolve('/my-recipes'))}
-/>
+	<div class="card on-cream form-card">
+		<RecipeForm
+			bind:draft
+			categories={data.categories}
+			submitLabel="Save recipe"
+			onsubmit={(recipe) => {
+				const created = userRecipes.create(recipe);
+				goto(resolve('/recipes/[id]', { id: created.id }));
+			}}
+			oncancel={() => goto(resolve('/my-recipes'))}
+		/>
+	</div>
+</div>
 
 <style>
 	.crumbs {
@@ -41,5 +45,13 @@
 
 	h1 {
 		margin-top: 0;
+	}
+
+	.form-card {
+		padding: var(--space-5);
+	}
+
+	.crumbs a {
+		color: var(--cream-muted);
 	}
 </style>
