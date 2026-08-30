@@ -1,7 +1,7 @@
 <script lang="ts">
 	import { on, setProps } from '$lib/components/stencil';
 	import { mealPlan, favorites, userRecipes, DAYS, today, type Day } from '$lib/stores';
-	import { lookupById, isExcludedCategory } from '$lib/api';
+	import { discover, lookupById, isExcludedCategory, mergeResults } from '$lib/api';
 	import type { MealSlot, Recipe } from 'recipe-ui-components';
 	import type { PageData } from './$types';
 
@@ -9,24 +9,22 @@
 
 	const currentDay = today();
 
-	// Picker state: which (day, slot) the user is filling, if any.
-	let picking = $state<{ day: Day; slot: MealSlot } | null>(null);
-	let pickerQuery = $state('');
-
 	/**
-	 * Candidates for the picker: the user's own recipes plus favorites, since
-	 * those are the recipes someone actually plans with. Falls back to the browse
-	 * list from the load function so a first-time user has something to choose.
+	 * Favorites, resolved to full recipes.
+	 *
+	 * Favorites are stored as ids, so each has to be looked up — from the user's
+	 * own store, or the API. Resolved once for the page rather than per-picker,
+	 * because both the drag strip and the picker need them.
 	 */
-	let candidates = $state<Recipe[]>([]);
+	let favoriteRecipes = $state<Recipe[]>([]);
 
 	$effect(() => {
-		if (!picking) return;
+		const ids = favorites.ids;
 		let cancelled = false;
 
 		(async () => {
-			const favs = await Promise.all(
-				favorites.ids.map(async (id) => {
+			const resolved = await Promise.all(
+				ids.map(async (id) => {
 					const local = userRecipes.get(id);
 					if (local) return local;
 					try {
@@ -37,14 +35,7 @@
 					}
 				})
 			);
-			if (cancelled) return;
-
-			// Transient de-duplication, discarded when this block ends.
-			// eslint-disable-next-line svelte/prefer-svelte-reactivity
-			const seen = new Set<string>();
-			candidates = [...userRecipes.all, ...favs.filter((r): r is Recipe => !!r), ...data.browse]
-				.filter((r) => (seen.has(r.id) ? false : (seen.add(r.id), true)))
-				.slice(0, 60);
+			if (!cancelled) favoriteRecipes = resolved.filter((r): r is Recipe => r !== null);
 		})();
 
 		return () => {
@@ -52,17 +43,84 @@
 		};
 	});
 
-	const filteredCandidates = $derived(
+	// Picker state: which (day, slot) the user is filling, if any.
+	let picking = $state<{ day: Day; slot: MealSlot } | null>(null);
+	let pickerQuery = $state('');
+	let remoteResults = $state<Recipe[]>([]);
+	let searching = $state(false);
+	let searchTimer: ReturnType<typeof setTimeout> | undefined;
+
+	/** Recipes the page already holds: the user's own, plus their favorites. */
+	const localPool = $derived(mergeResults(userRecipes.all, favoriteRecipes));
+
+	const localMatches = $derived(
 		pickerQuery.trim()
-			? candidates.filter((r) => r.title.toLowerCase().includes(pickerQuery.trim().toLowerCase()))
-			: candidates
+			? localPool.filter((r) => r.title.toLowerCase().includes(pickerQuery.trim().toLowerCase()))
+			: localPool
 	);
+
+	/**
+	 * What the picker lists.
+	 *
+	 * With no query this is the local pool plus the browse set, so a first-time
+	 * user is not staring at an empty list. Once they type, the query also goes
+	 * to the API — otherwise the picker could only ever find the handful of
+	 * recipes already loaded, which is not much of a search.
+	 */
+	const pickerResults = $derived(
+		pickerQuery.trim()
+			? mergeResults(localMatches, remoteResults)
+			: mergeResults(localPool, data.browse)
+	);
+
+	/**
+	 * Search the API for picker candidates.
+	 *
+	 * Debounced so typing does not fan out into a request per keystroke, and
+	 * skipped under two characters where the result set is meaninglessly broad.
+	 * Uses `discover` rather than `searchByName` so excluded categories stay
+	 * excluded here too.
+	 */
+	function onPickerInput(value: string) {
+		pickerQuery = value;
+		clearTimeout(searchTimer);
+
+		const query = value.trim();
+		if (query.length < 2) {
+			remoteResults = [];
+			searching = false;
+			return;
+		}
+
+		searching = true;
+		searchTimer = setTimeout(async () => {
+			try {
+				remoteResults = await discover(fetch, query, {});
+			} catch {
+				remoteResults = [];
+			} finally {
+				searching = false;
+			}
+		}, 300);
+	}
+
+	function openPicker(day: Day, slot: MealSlot) {
+		picking = { day, slot };
+		closeSearch();
+	}
+
+	function closeSearch() {
+		clearTimeout(searchTimer);
+		pickerQuery = '';
+		remoteResults = [];
+		searching = false;
+	}
 
 	function assign(recipe: Recipe) {
 		if (!picking) return;
 		mealPlan.assign(picking.day, picking.slot, recipe);
 		picking = null;
-		pickerQuery = '';
+		closeSearch();
 	}
 
 	/**
@@ -72,7 +130,10 @@
 	 * page already knows about, or a lookup.
 	 */
 	async function resolveDropped(id: string): Promise<Recipe | null> {
-		const local = userRecipes.get(id) ?? candidates.find((r) => r.id === id);
+		const local =
+			userRecipes.get(id) ??
+			favoriteRecipes.find((r) => r.id === id) ??
+			data.browse.find((r) => r.id === id);
 		if (local) return local;
 		try {
 			return await lookupById(fetch, id);
@@ -123,21 +184,24 @@
 		     is flagged for a11y: it steals focus on page load. Here the input only
 		     appears in response to a click, so moving focus to it is expected. -->
 			<input
-				bind:value={pickerQuery}
-				placeholder="Filter by name…"
-				aria-label="Filter recipes"
+				value={pickerQuery}
+				oninput={(e) => onPickerInput(e.currentTarget.value)}
+				placeholder="Search all recipes by name…"
+				aria-label="Search recipes"
 				use:focusOnMount
 			/>
 
-			{#if filteredCandidates.length === 0}
+			{#if searching && pickerResults.length === 0}
+				<p class="muted" role="status">Searching…</p>
+			{:else if pickerResults.length === 0}
 				<p class="muted">
-					No matches. {candidates.length === 0
-						? 'Add a recipe or star some favorites first.'
-						: 'Try a different name.'}
+					{pickerQuery.trim().length === 1
+						? 'Keep typing to search.'
+						: 'No recipes matched that name.'}
 				</p>
 			{:else}
 				<ul class="candidates">
-					{#each filteredCandidates as recipe (recipe.id)}
+					{#each pickerResults as recipe (recipe.id)}
 						<li>
 							<button onclick={() => assign(recipe)}>
 								{#if recipe.image}
@@ -166,10 +230,7 @@
 					isToday: day === currentDay
 				}}
 				use:on={{
-					addMealRequest: (e) => {
-						picking = { day: e.detail.day as Day, slot: e.detail.slot };
-						pickerQuery = '';
-					},
+					addMealRequest: (e) => openPicker(e.detail.day as Day, e.detail.slot),
 					removeMeal: (e) => mealPlan.unassign(e.detail.day as Day, e.detail.slot),
 					mealDrop: async (e) => {
 						const recipe = await resolveDropped(e.detail.recipeId);
@@ -184,30 +245,33 @@
 		{/each}
 	</div>
 
-	<section class="drag-source">
-		<h2>Drag any of these onto a slot</h2>
-		<p class="lede">Or open a recipe and use “Add to meal plan”.</p>
-		<!-- tabindex so the overflow region can be scrolled by keyboard; without it
-	     axe flags scrollable-region-focusable and the strip is mouse-only.
-	     Svelte's a11y rule objects to a nonnegative tabindex on a noninteractive
-	     role, but WAI-ARIA guidance is explicit that scroll containers should be
-	     focusable, and axe enforces it — so the rule is suppressed here rather
-	     than leaving the strip keyboard-inaccessible. -->
-		<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-		<div class="strip" role="list" tabindex="0" aria-label="Recipes available to drag">
-			{#each data.browse.slice(0, 8) as recipe (recipe.id)}
-				<div
-					class="chip-card"
-					draggable="true"
-					ondragstart={(e) => e.dataTransfer?.setData('text/plain', recipe.id)}
-					role="listitem"
-				>
-					{#if recipe.image}<img src={recipe.image} alt="" />{/if}
-					<span>{recipe.title}</span>
-				</div>
-			{/each}
-		</div>
-	</section>
+	{#if favoriteRecipes.length > 0}
+		<section class="drag-source">
+			<h2>Drag a favourite onto a slot</h2>
+			<p class="lede">Or open any recipe and use “Add to meal plan”.</p>
+
+			<!-- tabindex so the overflow region can be scrolled by keyboard; without it
+		     axe flags scrollable-region-focusable and the strip is mouse-only.
+		     Svelte's a11y rule objects to a nonnegative tabindex on a noninteractive
+		     role, but WAI-ARIA guidance is explicit that scroll containers should be
+		     focusable, and axe enforces it — so the rule is suppressed here rather
+		     than leaving the strip keyboard-inaccessible. -->
+			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+			<div class="strip" role="list" tabindex="0" aria-label="Favourite recipes available to drag">
+				{#each favoriteRecipes as recipe (recipe.id)}
+					<div
+						class="chip-card"
+						draggable="true"
+						ondragstart={(e) => e.dataTransfer?.setData('text/plain', recipe.id)}
+						role="listitem"
+					>
+						{#if recipe.image}<img src={recipe.image} alt="" />{/if}
+						<span>{recipe.title}</span>
+					</div>
+				{/each}
+			</div>
+		</section>
+	{/if}
 </div>
 
 <style>

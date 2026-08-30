@@ -100,7 +100,7 @@
 					{/if}
 					<button
 						slot="actions"
-						class="btn btn--sm btn--ghost"
+						class="btn btn--sm btn--on-cream"
 						onclick={() => {
 							mealPlan.assign(today(), 'dinner', recipe);
 							goto(resolve('/meal-plan'));
