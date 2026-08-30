@@ -93,7 +93,7 @@
 	<title>Weekly meal plan · Recipe Finder</title>
 </svelte:head>
 
-<header class="head">
+<div class="page-head">
 	<div>
 		<h1>Weekly meal plan</h1>
 		<p class="lede">
@@ -103,9 +103,9 @@
 		</p>
 	</div>
 	{#if planned > 0}
-		<button class="ghost" onclick={() => mealPlan.clear()}>Clear week</button>
+		<button class="btn btn--danger" onclick={() => mealPlan.clear()}>Clear week</button>
 	{/if}
-</header>
+</div>
 
 {#if picking}
 	<div class="picker" role="dialog" aria-label="Choose a recipe">
@@ -113,7 +113,9 @@
 			<strong>
 				Choose a recipe for {picking.slot} on {picking.day}
 			</strong>
-			<button class="icon" onclick={() => (picking = null)} aria-label="Close picker">✕</button>
+			<button class="btn btn--sm" onclick={() => (picking = null)} aria-label="Close picker"
+				>Close</button
+			>
 		</div>
 
 		<!-- Focused programmatically rather than with the autofocus attribute, which
@@ -184,7 +186,14 @@
 <section class="drag-source">
 	<h2>Drag any of these onto a slot</h2>
 	<p class="lede">Or open a recipe and use “Add to meal plan”.</p>
-	<div class="strip" role="list">
+	<!-- tabindex so the overflow region can be scrolled by keyboard; without it
+	     axe flags scrollable-region-focusable and the strip is mouse-only.
+	     Svelte's a11y rule objects to a nonnegative tabindex on a noninteractive
+	     role, but WAI-ARIA guidance is explicit that scroll containers should be
+	     focusable, and axe enforces it — so the rule is suppressed here rather
+	     than leaving the strip keyboard-inaccessible. -->
+	<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
+	<div class="strip" role="list" tabindex="0" aria-label="Recipes available to drag">
 		{#each data.browse.slice(0, 8) as recipe (recipe.id)}
 			<div
 				class="chip-card"
@@ -200,28 +209,13 @@
 </section>
 
 <style>
-	.head {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		margin-bottom: 1.25rem;
-	}
-
 	h1 {
-		margin: 0 0 0.25rem;
-	}
-
-	.lede {
-		margin: 0;
-		font-size: 0.9375rem;
-		color: var(--muted);
+		margin-bottom: 0;
 	}
 
 	.week {
 		display: grid;
-		gap: 0.75rem;
+		gap: var(--space-3);
 		grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
 		align-items: start;
 	}
@@ -237,43 +231,46 @@
 
 	.day-summary {
 		font-size: 0.6875rem;
+		font-weight: 500;
 		color: var(--muted);
 	}
 
 	.picker {
 		position: sticky;
-		top: 4rem;
-		z-index: 5;
+		top: 4.25rem;
+		z-index: 10;
 		display: grid;
-		gap: 0.625rem;
-		margin-bottom: 1.25rem;
-		padding: 1rem;
+		gap: var(--space-3);
+		margin-bottom: var(--space-5);
+		padding: var(--space-4);
 		background: var(--surface);
 		border: 1px solid var(--accent);
-		border-radius: var(--radius);
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-3);
 	}
 
 	.picker-head {
 		display: flex;
 		align-items: center;
 		justify-content: space-between;
-		gap: 1rem;
+		gap: var(--space-4);
 	}
 
 	.picker input {
 		width: 100%;
-		padding: 0.5rem 0.625rem;
+		padding: 0.5rem 0.6875rem;
 		font: inherit;
+		font-size: var(--step-0);
 		color: var(--text);
 		background: var(--bg);
-		border: 1px solid var(--border);
+		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-sm);
 	}
 
 	.candidates {
 		display: grid;
-		gap: 0.25rem;
-		max-height: 16rem;
+		gap: var(--space-1);
+		max-height: 17rem;
 		margin: 0;
 		padding: 0;
 		overflow-y: auto;
@@ -283,37 +280,40 @@
 	.candidates button {
 		display: flex;
 		align-items: center;
-		gap: 0.5rem;
+		gap: var(--space-3);
 		width: 100%;
-		padding: 0.375rem 0.5rem;
+		padding: var(--space-2);
 		font: inherit;
-		font-size: 0.875rem;
+		font-size: var(--step-0);
 		color: var(--text);
 		text-align: left;
 		cursor: pointer;
 		background: transparent;
 		border: 1px solid transparent;
 		border-radius: var(--radius-sm);
+		transition:
+			background 120ms var(--ease),
+			border-color 120ms var(--ease);
 	}
 
 	.candidates button:hover {
-		background: var(--bg);
+		background: var(--surface-2);
 		border-color: var(--border);
 	}
 
 	.candidates img,
 	.thumb-placeholder {
 		flex-shrink: 0;
-		width: 2rem;
-		height: 2rem;
+		width: 2.25rem;
+		height: 2.25rem;
 		object-fit: cover;
-		border-radius: 4px;
+		border-radius: var(--radius-sm);
 	}
 
 	.thumb-placeholder {
 		display: grid;
 		place-items: center;
-		background: var(--bg);
+		background: var(--surface-2);
 	}
 
 	.cand-title {
@@ -326,85 +326,73 @@
 
 	.mine {
 		flex-shrink: 0;
-		padding: 0.0625rem 0.375rem;
+		padding: 0.125rem 0.4375rem;
 		font-size: 0.625rem;
+		font-weight: 600;
 		color: var(--accent-contrast);
 		background: var(--accent);
-		border-radius: 999px;
-	}
-
-	.icon {
-		width: 1.75rem;
-		height: 1.75rem;
-		font: inherit;
-		color: var(--muted);
-		cursor: pointer;
-		background: transparent;
-		border: 1px solid var(--border);
-		border-radius: 6px;
-	}
-
-	.ghost {
-		padding: 0.4rem 0.75rem;
-		font: inherit;
-		font-size: 0.8125rem;
-		color: var(--text);
-		cursor: pointer;
-		background: transparent;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
-	}
-
-	.ghost:hover {
-		color: var(--danger-text);
-		border-color: #dc2626;
+		border-radius: var(--radius-full);
 	}
 
 	.drag-source {
-		margin-top: 2.5rem;
-	}
-
-	.drag-source h2 {
-		margin: 0 0 0.25rem;
-		font-size: 1rem;
+		margin-top: var(--space-7);
+		padding-top: var(--space-5);
+		border-top: 1px solid var(--border);
 	}
 
 	.strip {
 		display: flex;
-		gap: 0.5rem;
-		margin-top: 0.75rem;
-		padding-bottom: 0.5rem;
+		gap: var(--space-3);
+		margin-top: var(--space-4);
+		padding-bottom: var(--space-2);
 		overflow-x: auto;
+		scrollbar-width: thin;
 	}
 
 	.chip-card {
 		display: flex;
 		flex-direction: column;
 		flex-shrink: 0;
-		gap: 0.25rem;
-		width: 7.5rem;
-		padding: 0.5rem;
-		font-size: 0.75rem;
+		gap: var(--space-2);
+		width: 8.5rem;
+		padding: var(--space-2);
+		font-size: var(--step--1);
+		font-weight: 500;
 		cursor: grab;
 		background: var(--surface);
 		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius);
+		box-shadow: var(--shadow-1);
+		transition:
+			box-shadow 160ms var(--ease),
+			transform 160ms var(--ease);
+	}
+
+	.chip-card:hover {
+		transform: translateY(-2px);
+		box-shadow: var(--shadow-2);
 	}
 
 	.chip-card:active {
 		cursor: grabbing;
+		transform: none;
 	}
 
 	.chip-card img {
 		width: 100%;
-		height: 3.5rem;
+		height: 4rem;
 		object-fit: cover;
-		border-radius: 4px;
+		border-radius: var(--radius-sm);
+	}
+
+	.chip-card span {
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
 	}
 
 	.muted {
-		margin: 0;
-		font-size: 0.875rem;
+		font-size: var(--step-0);
 		color: var(--muted);
 	}
 </style>

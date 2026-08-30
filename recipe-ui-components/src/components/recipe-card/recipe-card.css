@@ -48,14 +48,23 @@
 
 .media {
   position: relative;
+  /* Clips the image to the media box. Without this, any transform a consumer
+     applies to the image part bleeds over the card body. */
+  overflow: hidden;
   aspect-ratio: 4 / 3;
-  background: #f4f4f5;
+  background: var(--recipe-card-media-bg, #f4f4f5);
 }
 
 .media img {
   display: block;
   width: 100%;
-  height: 100%;
+  /* Not `height: 100%`: that resolves against a height derived from the
+     container's own aspect-ratio, which is circular, so the browser falls back
+     to the image's intrinsic ratio. Square source images then made the media
+     taller than 4:3 while the no-image placeholder stayed correct, giving
+     uneven card heights in a grid. Restating the ratio here is unambiguous. */
+  height: auto;
+  aspect-ratio: 4 / 3;
   object-fit: cover;
 }
 
@@ -65,6 +74,12 @@
   width: 100%;
   height: 100%;
   font-size: 2.5rem;
+  /* A soft wash rather than a flat grey, so a recipe with no photo still reads
+     as a deliberate card instead of a broken one. */
+  background:
+    radial-gradient(circle at 50% 40%, var(--recipe-card-chip-bg), transparent 70%),
+    var(--recipe-card-media-bg, #f4f4f5);
+  opacity: 0.9;
 }
 
 .media__badge {
@@ -174,7 +189,7 @@
     --recipe-card-chip-bg: #27272a;
   }
 
-  .media {
-    background: #27272a;
+  :host {
+    --recipe-card-media-bg: #27272a;
   }
 }

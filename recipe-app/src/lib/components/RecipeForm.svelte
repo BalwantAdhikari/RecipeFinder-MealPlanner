@@ -186,7 +186,9 @@
 		{/each}
 
 		{#if showError('ingredients')}<p class="err">{showError('ingredients')}</p>{/if}
-		<button type="button" class="add" onclick={addIngredient}>+ Add ingredient</button>
+		<button type="button" class="btn btn--sm btn--ghost" onclick={addIngredient}
+			>+ Add ingredient</button
+		>
 	</fieldset>
 
 	<fieldset>
@@ -234,7 +236,7 @@
 		{/each}
 
 		{#if showError('instructions')}<p class="err">{showError('instructions')}</p>{/if}
-		<button type="button" class="add" onclick={addStep}>+ Add step</button>
+		<button type="button" class="btn btn--sm btn--ghost" onclick={addStep}>+ Add step</button>
 	</fieldset>
 
 	{#if submitAttempted && !valid}
@@ -247,26 +249,26 @@
 	<div class="actions">
 		<!-- Not disabled: a disabled button gives no feedback about *why*. Submit
 		     instead reveals every error and focuses the first one. -->
-		<button type="submit" class="primary">{submitLabel}</button>
-		<button type="button" onclick={oncancel}>Cancel</button>
+		<button type="submit" class="btn btn--primary">{submitLabel}</button>
+		<button type="button" class="btn" onclick={oncancel}>Cancel</button>
 	</div>
 </form>
 
 <style>
 	form {
 		display: grid;
-		gap: 1.25rem;
-		max-width: 46rem;
+		gap: var(--space-5);
+		max-width: 48rem;
 	}
 
 	.field {
 		display: grid;
-		gap: 0.3125rem;
+		gap: var(--space-1);
 	}
 
 	.row {
 		display: grid;
-		gap: 1rem;
+		gap: var(--space-4);
 	}
 
 	@media (min-width: 560px) {
@@ -277,8 +279,10 @@
 
 	label,
 	legend {
-		font-size: 0.875rem;
-		font-weight: 500;
+		font-size: var(--step--1);
+		font-weight: 600;
+		letter-spacing: 0.01em;
+		color: var(--muted-strong);
 	}
 
 	.req {
@@ -289,92 +293,115 @@
 	select,
 	textarea {
 		width: 100%;
-		padding: 0.5rem 0.625rem;
+		padding: 0.5625rem 0.6875rem;
 		font: inherit;
-		font-size: 0.9375rem;
+		font-size: var(--step-0);
 		color: var(--text);
-		background: var(--bg);
-		border: 1px solid var(--border);
+		background: var(--surface);
+		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-sm);
+		transition:
+			border-color 140ms var(--ease),
+			box-shadow 140ms var(--ease);
+	}
+
+	input:focus,
+	select:focus,
+	textarea:focus {
+		border-color: var(--accent);
+		box-shadow: 0 0 0 3px var(--accent-soft);
+		outline: none;
 	}
 
 	textarea {
 		resize: vertical;
-	}
-
-	input:focus-visible,
-	select:focus-visible,
-	textarea:focus-visible {
-		outline: 2px solid var(--accent);
-		outline-offset: 1px;
+		line-height: 1.5;
 	}
 
 	[aria-invalid='true'] {
-		border-color: #dc2626;
+		border-color: var(--danger);
+	}
+
+	[aria-invalid='true']:focus {
+		border-color: var(--danger);
+		box-shadow: 0 0 0 3px var(--danger-soft);
 	}
 
 	.err {
 		margin: 0;
-		font-size: 0.8125rem;
+		font-size: var(--step--1);
 		color: var(--danger-text);
 	}
 
 	.err.summary {
-		padding: 0.625rem 0.75rem;
-		background: #fef2f2;
-		border: 1px solid #fecaca;
-		border-radius: var(--radius-sm);
+		display: flex;
+		align-items: center;
+		gap: var(--space-2);
+		padding: var(--space-3) var(--space-4);
+		font-weight: 500;
+		background: var(--danger-soft);
+		border: 1px solid var(--danger-border);
+		border-radius: var(--radius);
 	}
-
-	/* The dark override below only changes the surface; the text colour comes
-	   from --danger-text, which is already tuned for both. */
 
 	fieldset {
 		display: grid;
-		gap: 0.5rem;
+		gap: var(--space-3);
 		margin: 0;
-		padding: 1rem;
+		padding: var(--space-4);
+		background: var(--surface);
 		border: 1px solid var(--border);
-		border-radius: var(--radius);
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-1);
 	}
 
 	.ing-row {
 		display: grid;
 		grid-template-columns: 2fr 1fr auto;
-		gap: 0.5rem;
+		gap: var(--space-2);
 	}
 
 	.step-row {
 		display: grid;
 		grid-template-columns: auto 1fr auto;
-		gap: 0.5rem;
+		gap: var(--space-2);
 		align-items: start;
 	}
 
 	.step-no {
-		padding-top: 0.5rem;
-		font-size: 0.8125rem;
-		color: var(--muted);
+		display: grid;
+		place-items: center;
+		width: 1.5rem;
+		height: 1.5rem;
+		margin-top: 0.4375rem;
+		font-size: var(--step--1);
+		font-weight: 600;
+		color: var(--accent-text);
+		background: var(--accent-soft);
+		border-radius: var(--radius-full);
 	}
 
 	.step-actions {
 		display: flex;
 		flex-direction: column;
-		gap: 0.125rem;
+		gap: var(--space-1);
 	}
 
 	.icon {
-		width: 1.75rem;
-		height: 1.75rem;
+		width: 1.875rem;
+		height: 1.875rem;
 		display: grid;
 		place-items: center;
 		font: inherit;
-		font-size: 0.75rem;
+		font-size: var(--step--1);
 		color: var(--muted);
 		cursor: pointer;
-		background: transparent;
+		background: var(--surface);
 		border: 1px solid var(--border);
-		border-radius: 6px;
+		border-radius: var(--radius-sm);
+		transition:
+			color 120ms var(--ease),
+			border-color 120ms var(--ease);
 	}
 
 	.icon:hover:not(:disabled) {
@@ -387,44 +414,9 @@
 		cursor: not-allowed;
 	}
 
-	.add {
-		justify-self: start;
-		padding: 0.375rem 0.75rem;
-		font: inherit;
-		font-size: 0.8125rem;
-		color: var(--text);
-		cursor: pointer;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
-	}
-
 	.actions {
 		display: flex;
-		gap: 0.5rem;
-	}
-
-	.actions button {
-		padding: 0.5rem 1rem;
-		font: inherit;
-		font-size: 0.9375rem;
-		color: var(--text);
-		cursor: pointer;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
-	}
-
-	.actions .primary {
-		color: var(--accent-contrast);
-		background: var(--accent);
-		border-color: var(--accent);
-	}
-
-	@media (prefers-color-scheme: dark) {
-		.err.summary {
-			background: #450a0a;
-			border-color: #7f1d1d;
-		}
+		flex-wrap: wrap;
+		gap: var(--space-2);
 	}
 </style>

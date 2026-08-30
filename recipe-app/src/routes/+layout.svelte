@@ -37,8 +37,23 @@
 	<header class="header">
 		<div class="bar">
 			<a class="brand" href={resolve('/')}>
-				<span aria-hidden="true">🍳</span>
-				Recipe Finder
+				<span class="brand-mark" aria-hidden="true">
+					<svg
+						viewBox="0 0 24 24"
+						width="18"
+						height="18"
+						fill="none"
+						stroke="currentColor"
+						stroke-width="2"
+						stroke-linecap="round"
+					>
+						<path d="M4 4v7a4 4 0 0 0 8 0V4" />
+						<path d="M8 15v5" />
+						<path d="M17 4c0 3-2 4-2 7s2 4 2 4" />
+						<path d="M17 15v5" />
+					</svg>
+				</span>
+				<span class="brand-text">Recipe Finder</span>
 			</a>
 
 			<nav aria-label="Main">
@@ -80,9 +95,9 @@
 	.header {
 		position: sticky;
 		top: 0;
-		z-index: 10;
-		background: color-mix(in srgb, var(--bg) 88%, transparent);
-		backdrop-filter: blur(8px);
+		z-index: 20;
+		background: color-mix(in srgb, var(--bg) 82%, transparent);
+		backdrop-filter: saturate(1.6) blur(12px);
 		border-bottom: 1px solid var(--border);
 	}
 
@@ -90,26 +105,38 @@
 		display: flex;
 		max-width: var(--max-width);
 		margin: 0 auto;
-		padding: 0.75rem 1.25rem;
+		padding: var(--space-3) var(--space-5);
 		align-items: center;
 		justify-content: space-between;
-		gap: 1rem;
+		gap: var(--space-4);
 		flex-wrap: wrap;
 	}
 
 	.brand {
 		display: inline-flex;
 		align-items: center;
-		gap: 0.4rem;
-		font-size: 1.0625rem;
+		gap: var(--space-2);
+		font-size: var(--step-1);
 		font-weight: 700;
+		letter-spacing: -0.02em;
 		color: var(--text);
 		text-decoration: none;
 	}
 
+	.brand-mark {
+		display: grid;
+		place-items: center;
+		width: 1.875rem;
+		height: 1.875rem;
+		color: var(--accent-contrast);
+		background: linear-gradient(140deg, var(--accent), var(--accent-hover));
+		border-radius: var(--radius-sm);
+		box-shadow: var(--shadow-1);
+	}
+
 	nav ul {
 		display: flex;
-		gap: 0.25rem;
+		gap: var(--space-1);
 		margin: 0;
 		padding: 0;
 		list-style: none;
@@ -118,21 +145,26 @@
 
 	nav a {
 		display: block;
-		padding: 0.375rem 0.75rem;
-		font-size: 0.9375rem;
+		padding: 0.4375rem 0.8125rem;
+		font-size: var(--step-0);
+		font-weight: 500;
 		color: var(--muted);
 		text-decoration: none;
-		border-radius: 999px;
+		border-radius: var(--radius-full);
+		transition:
+			color 140ms var(--ease),
+			background 140ms var(--ease);
 	}
 
 	nav a:hover {
 		color: var(--text);
-		background: var(--surface);
+		background: var(--surface-2);
 	}
 
 	nav a[aria-current='page'] {
 		color: var(--accent-contrast);
 		background: var(--accent);
+		box-shadow: var(--shadow-1);
 	}
 
 	.main {
@@ -140,18 +172,33 @@
 		width: 100%;
 		max-width: var(--max-width);
 		margin: 0 auto;
-		padding: 1.5rem 1.25rem 3rem;
+		padding: var(--space-6) var(--space-5) var(--space-7);
 	}
 
 	.footer {
 		border-top: 1px solid var(--border);
+		background: var(--surface);
 	}
 
 	.footer p {
 		max-width: var(--max-width);
 		margin: 0 auto;
-		padding: 1rem 1.25rem;
-		font-size: 0.8125rem;
+		padding: var(--space-4) var(--space-5);
+		font-size: var(--step--1);
 		color: var(--muted);
+	}
+
+	@media (max-width: 520px) {
+		.brand-text {
+			font-size: var(--step-0);
+		}
+
+		.bar {
+			padding: var(--space-3) var(--space-4);
+		}
+
+		.main {
+			padding: var(--space-5) var(--space-4) var(--space-6);
+		}
 	}
 </style>

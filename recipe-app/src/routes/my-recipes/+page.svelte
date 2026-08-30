@@ -25,7 +25,7 @@
 	<title>My recipes · Recipe Finder</title>
 </svelte:head>
 
-<header class="head">
+<div class="page-head">
 	<div>
 		<h1>My recipes</h1>
 		<p class="lede">
@@ -34,8 +34,8 @@
 				: `${userRecipes.count} recipe${userRecipes.count === 1 ? '' : 's'}, stored in this browser.`}
 		</p>
 	</div>
-	<a class="cta" href={resolve('/my-recipes/new')}>+ New recipe</a>
-</header>
+	<a class="btn btn--primary" href={resolve('/my-recipes/new')}>+ New recipe</a>
+</div>
 
 {#if pendingDelete}
 	<div class="confirm" role="alertdialog" aria-labelledby="confirm-title">
@@ -44,19 +44,19 @@
 			meal plan, and cannot be undone.
 		</p>
 		<div class="confirm-actions">
-			<button class="danger" onclick={confirmDelete}>Delete</button>
-			<button onclick={() => (pendingDelete = null)}>Keep it</button>
+			<button class="btn btn--delete" onclick={confirmDelete}>Delete</button>
+			<button class="btn" onclick={() => (pendingDelete = null)}>Keep it</button>
 		</div>
 	</div>
 {/if}
 
 {#if userRecipes.count === 0}
-	<div class="empty">
+	<div class="empty-state">
 		<p>You have not added any recipes yet.</p>
-		<a class="cta" href={resolve('/my-recipes/new')}>Add your first recipe</a>
+		<a class="btn btn--primary" href={resolve('/my-recipes/new')}>Add your first recipe</a>
 	</div>
 {:else}
-	<div class="grid">
+	<div class="card-grid">
 		{#each userRecipes.all as recipe (recipe.id)}
 			<recipe-card
 				use:setProps={{ recipe, isFavorite: favorites.has(recipe.id) }}
@@ -65,7 +65,7 @@
 					viewDetails: (e) => goto(resolve('/recipes/[id]', { id: e.detail.recipeId }))
 				}}
 			>
-				<span slot="badge" class="badge">✎ mine</span>
+				<span slot="badge" class="badge">Mine</span>
 				<a slot="actions" class="ghost" href={resolve('/my-recipes/[id]/edit', { id: recipe.id })}>
 					Edit
 				</a>
@@ -78,128 +78,47 @@
 {/if}
 
 <style>
-	.head {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		margin-bottom: 1.5rem;
-	}
-
 	h1 {
-		margin: 0 0 0.25rem;
+		margin-bottom: 0;
 	}
 
-	.lede {
-		margin: 0;
-		font-size: 0.9375rem;
-		color: var(--muted);
-	}
-
-	.cta {
-		padding: 0.5rem 1rem;
-		font-size: 0.9375rem;
-		font-weight: 500;
+	.badge {
+		padding: 0.1875rem 0.5rem;
+		font-size: 0.6875rem;
+		font-weight: 600;
 		color: var(--accent-contrast);
-		text-decoration: none;
 		background: var(--accent);
-		border-radius: var(--radius-sm);
+		border-radius: var(--radius-full);
 	}
 
 	.confirm {
-		margin-bottom: 1.25rem;
-		padding: 1rem;
-		background: #fef2f2;
-		border: 1px solid #fecaca;
-		border-radius: var(--radius);
+		margin-bottom: var(--space-5);
+		padding: var(--space-4);
+		background: var(--danger-soft);
+		border: 1px solid var(--danger-border);
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-1);
 	}
 
 	.confirm p {
-		margin: 0 0 0.75rem;
-		color: #7f1d1d;
+		margin-bottom: var(--space-3);
+		color: var(--danger-text);
 	}
 
 	.confirm-actions {
 		display: flex;
-		gap: 0.5rem;
+		flex-wrap: wrap;
+		gap: var(--space-2);
 	}
 
-	.confirm-actions button {
-		padding: 0.4375rem 0.875rem;
-		font: inherit;
-		font-size: 0.875rem;
-		cursor: pointer;
-		background: #fff;
-		border: 1px solid #fecaca;
-		border-radius: var(--radius-sm);
-	}
-
-	.confirm-actions .danger {
+	.btn--delete {
 		color: #fff;
-		background: #dc2626;
-		border-color: #dc2626;
+		background: var(--danger);
+		border-color: var(--danger);
 	}
 
-	.grid {
-		display: grid;
-		gap: 1rem;
-		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-	}
-
-	.badge {
-		padding: 0.125rem 0.375rem;
-		font-size: 0.625rem;
-		color: var(--accent-contrast);
-		background: var(--accent);
-		border-radius: 999px;
-	}
-
-	.ghost {
-		padding: 0.4rem 0.6rem;
-		font: inherit;
-		font-size: 0.8125rem;
-		color: var(--text);
-		text-decoration: none;
-		cursor: pointer;
-		background: transparent;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
-	}
-
-	.ghost:hover {
-		color: var(--accent-text);
-		border-color: var(--accent);
-	}
-
-	.ghost--danger:hover {
-		color: var(--danger-text);
-		border-color: #dc2626;
-	}
-
-	.empty {
-		padding: 2.5rem 1rem;
-		text-align: center;
-		color: var(--muted);
-		background: var(--surface);
-		border: 1px dashed var(--border);
-		border-radius: var(--radius);
-	}
-
-	@media (prefers-color-scheme: dark) {
-		.confirm {
-			background: #450a0a;
-			border-color: #7f1d1d;
-		}
-
-		.confirm p {
-			color: #fecaca;
-		}
-
-		.confirm-actions button {
-			color: #fecaca;
-			background: #7f1d1d;
-			border-color: #991b1b;
-		}
+	.btn--delete:hover {
+		color: #fff;
+		filter: brightness(1.08);
 	}
 </style>

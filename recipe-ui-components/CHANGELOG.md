@@ -7,6 +7,17 @@ This project follows [semantic versioning](https://semver.org/).
 
 ### Fixed
 
+- **Cards with a photo were taller than cards without one.** `.media img` used
+  `height: 100%` inside a box whose height came from `aspect-ratio: 4 / 3` — a circular
+  dependency, so browsers fell back to the image's intrinsic ratio. Square source images
+  (TheMealDB serves squares) made the media 269px while the no-image placeholder stayed at
+  the correct 202px, giving visibly uneven cards in a grid. The image now restates the ratio
+  with `height: auto`.
+- **`.media` had no overflow clipping**, so any transform a consumer applied via
+  `::part(image)` bled over the card body. Now clipped.
+- The no-image placeholder uses a soft radial wash instead of flat grey, and
+  `--recipe-card-media-bg` is exposed for theming it.
+
 - **`recipe-card` chip text failed WCAG AA contrast.** At 0.75rem on the tinted chip
   background, `--recipe-card-muted` (`#71717a`) measures **4.40:1** — just under the 4.5:1
   threshold. Chips now use dedicated `--recipe-card-chip-text` / `--recipe-card-chip-bg`

@@ -64,9 +64,18 @@
 	<meta name="description" content="Search and browse recipes from TheMealDB." />
 </svelte:head>
 
-<h1>Discover recipes</h1>
+<div class="page-head">
+	<div>
+		<p class="eyebrow">Recipe finder</p>
+		<h1>Discover recipes</h1>
+		<p class="lede">
+			Search thousands of recipes, filter by category or cuisine, and save the ones you want to
+			cook.
+		</p>
+	</div>
+</div>
 
-<div class="controls">
+<div class="toolbar">
 	<recipe-search-bar
 		use:setProps={{ value: data.query, placeholder: 'Search recipes by name…' }}
 		use:on={{
@@ -86,23 +95,21 @@
 
 {#if data.error}
 	<p class="error" role="alert">
-		{data.error}
-		<button onclick={() => location.reload()}>Retry</button>
+		<span>{data.error}</span>
+		<button class="btn btn--sm" onclick={() => location.reload()}>Retry</button>
 	</p>
 {/if}
 
-<p class="summary">
-	{#if results.length}
-		{results.length} recipe{results.length === 1 ? '' : 's'}
-		{#if data.query}matching “{data.query}”{/if}
-		{#if activeFilterCount}with {activeFilterCount} filter{activeFilterCount === 1 ? '' : 's'}{/if}
-	{:else if !data.error}
-		No recipes found.
-	{/if}
-</p>
-
 {#if results.length}
-	<div class="grid">
+	<p class="summary">
+		<strong>{results.length}</strong> recipe{results.length === 1 ? '' : 's'}
+		{#if data.query}matching “{data.query}”{/if}
+		{#if activeFilterCount}
+			· {activeFilterCount} filter{activeFilterCount === 1 ? '' : 's'} active
+		{/if}
+	</p>
+
+	<div class="card-grid">
 		{#each results as recipe (recipe.id)}
 			<recipe-card
 				use:setProps={{ recipe, isFavorite: favorites.has(recipe.id) }}
@@ -112,119 +119,69 @@
 				}}
 			>
 				{#if recipe.source === 'user'}
-					<span slot="badge" class="badge badge--mine">✎ mine</span>
+					<span slot="badge" class="badge">Mine</span>
 				{/if}
-				<button slot="actions" class="ghost" onclick={() => addToPlan(recipe)}>
+				<button class="btn btn--sm btn--ghost" slot="actions" onclick={() => addToPlan(recipe)}>
 					Add to plan
 				</button>
 			</recipe-card>
 		{/each}
 	</div>
 {:else if !data.error}
-	<div class="empty">
-		<p>Nothing matched. Try a different search, clear the filters, or add your own recipe.</p>
-		<a class="cta" href={resolve('/my-recipes/new')}>Add a recipe</a>
+	<div class="empty-state">
+		<h2>No recipes matched</h2>
+		<p>Try a different search, clear the filters, or write your own recipe.</p>
+		<a class="btn btn--primary" href={resolve('/my-recipes/new')}>Add a recipe</a>
 	</div>
 {/if}
 
 <style>
-	.controls {
+	/* The search bar and filters read as one control surface rather than two
+	   stacked boxes. The filter panel's own background and border are switched
+	   off via custom properties in app.css so it sits inside this shell. */
+	.toolbar {
 		display: grid;
-		gap: 0.75rem;
-		margin-bottom: 1.25rem;
+		gap: var(--space-3);
+		padding: var(--space-3);
+		margin-bottom: var(--space-5);
+		background: var(--surface);
+		border: 1px solid var(--border);
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-1);
 	}
 
 	.summary {
-		font-size: 0.875rem;
+		margin-bottom: var(--space-4);
+		font-size: var(--step--1);
 		color: var(--muted);
+	}
+
+	.summary strong {
+		color: var(--text);
 	}
 
 	.error {
 		display: flex;
+		flex-wrap: wrap;
 		align-items: center;
-		gap: 0.75rem;
-		padding: 0.75rem 1rem;
-		color: #7f1d1d;
-		background: #fef2f2;
-		border: 1px solid #fecaca;
-		border-radius: var(--radius-sm);
-	}
-
-	.error button {
-		padding: 0.25rem 0.625rem;
-		font: inherit;
-		font-size: 0.8125rem;
-		cursor: pointer;
-		background: #fff;
-		border: 1px solid #fecaca;
-		border-radius: 6px;
-	}
-
-	.grid {
-		display: grid;
-		gap: 1rem;
-		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-	}
-
-	.badge {
-		padding: 0.125rem 0.375rem;
-		font-size: 0.625rem;
-		color: #fff;
-		background: #18181b;
-		border-radius: 999px;
-	}
-
-	.badge--mine {
-		background: var(--accent);
-	}
-
-	.ghost {
-		padding: 0.4rem 0.75rem;
-		font: inherit;
-		font-size: 0.8125rem;
-		color: var(--text);
-		cursor: pointer;
-		background: transparent;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
-	}
-
-	.ghost:hover {
-		color: var(--accent-text);
-		border-color: var(--accent);
-	}
-
-	.empty {
-		padding: 2.5rem 1rem;
-		text-align: center;
-		color: var(--muted);
-		background: var(--surface);
-		border: 1px dashed var(--border);
+		justify-content: space-between;
+		gap: var(--space-3);
+		padding: var(--space-3) var(--space-4);
+		margin-bottom: var(--space-4);
+		color: var(--danger-text);
+		background: var(--danger-soft);
+		border: 1px solid var(--danger-border);
 		border-radius: var(--radius);
 	}
 
-	.cta {
-		display: inline-block;
-		padding: 0.5rem 1rem;
-		font-size: 0.9375rem;
-		font-weight: 500;
+	.badge {
+		padding: 0.1875rem 0.5rem;
+		font-size: 0.6875rem;
+		font-weight: 600;
+		letter-spacing: 0.02em;
 		color: var(--accent-contrast);
-		text-decoration: none;
 		background: var(--accent);
-		border-radius: var(--radius-sm);
-	}
-
-	@media (prefers-color-scheme: dark) {
-		.error {
-			color: #fecaca;
-			background: #450a0a;
-			border-color: #7f1d1d;
-		}
-
-		.error button {
-			color: #fecaca;
-			background: #7f1d1d;
-			border-color: #991b1b;
-		}
+		border-radius: var(--radius-full);
+		box-shadow: var(--shadow-1);
 	}
 </style>

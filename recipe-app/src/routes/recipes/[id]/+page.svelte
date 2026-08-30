@@ -27,7 +27,7 @@
 {#if data.error}
 	<p class="error" role="alert">{data.error}</p>
 {:else if !recipe}
-	<div class="empty">
+	<div class="empty-state">
 		<h1>Recipe not found</h1>
 		<p>
 			{#if data.isUserRecipe}
@@ -36,7 +36,7 @@
 				We could not find that recipe.
 			{/if}
 		</p>
-		<a class="cta" href={resolve('/')}>Back to discovery</a>
+		<a class="btn btn--primary" href={resolve('/')}>Back to discovery</a>
 	</div>
 {:else}
 	<article>
@@ -64,6 +64,7 @@
 					</button>
 
 					<button
+						class="btn"
 						onclick={() => {
 							mealPlan.assign(today(), 'dinner', recipe);
 							goto(resolve('/meal-plan'));
@@ -73,7 +74,7 @@
 					</button>
 
 					{#if isUserRecipeId(recipe.id)}
-						<a href={resolve('/my-recipes/[id]/edit', { id: recipe.id })}>Edit</a>
+						<a class="btn" href={resolve('/my-recipes/[id]/edit', { id: recipe.id })}>Edit</a>
 					{/if}
 				</div>
 
@@ -121,122 +122,136 @@
 <style>
 	.head {
 		display: grid;
-		gap: 1.25rem;
-		margin-bottom: 2rem;
+		gap: var(--space-5);
+		margin-bottom: var(--space-6);
 	}
 
 	.hero {
 		width: 100%;
-		max-height: 340px;
+		aspect-ratio: 4 / 3;
+		max-height: 380px;
 		object-fit: cover;
-		border-radius: var(--radius);
+		border-radius: var(--radius-lg);
+		box-shadow: var(--shadow-2);
 	}
 
 	h1 {
-		margin: 0 0 0.5rem;
+		margin-bottom: var(--space-3);
 	}
 
 	.chips {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.375rem;
-		margin: 0 0 0.5rem;
+		gap: var(--space-2);
+		margin-bottom: var(--space-3);
 	}
 
 	.chip {
-		padding: 0.125rem 0.5rem;
-		font-size: 0.75rem;
-		color: var(--muted);
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: 999px;
+		padding: 0.1875rem 0.625rem;
+		font-size: var(--step--1);
+		font-weight: 500;
+		color: var(--muted-strong);
+		background: var(--surface-2);
+		border-radius: var(--radius-full);
 	}
 
 	.chip--mine {
 		color: var(--accent-contrast);
 		background: var(--accent);
-		border-color: var(--accent);
 	}
 
 	.tags {
-		margin: 0 0 0.75rem;
-		font-size: 0.8125rem;
+		margin-bottom: var(--space-4);
+		font-size: var(--step--1);
 		color: var(--muted);
 	}
 
 	.actions {
 		display: flex;
 		flex-wrap: wrap;
-		gap: 0.5rem;
-		margin-bottom: 0.75rem;
+		gap: var(--space-2);
+		margin-bottom: var(--space-4);
 	}
 
-	.actions button,
-	.actions a {
-		padding: 0.4375rem 0.875rem;
-		font: inherit;
-		font-size: 0.875rem;
-		color: var(--text);
-		text-decoration: none;
-		cursor: pointer;
-		background: var(--surface);
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
-	}
-
-	.actions button.active {
+	.actions .active {
 		color: var(--accent-text);
 		border-color: var(--accent);
+		background: var(--accent-soft);
 	}
 
 	.body {
 		display: grid;
-		gap: 2rem;
+		gap: var(--space-6);
 	}
 
-	@media (min-width: 720px) {
+	@media (min-width: 760px) {
 		.head {
 			grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
 			align-items: start;
 		}
 
 		.body {
-			grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr);
+			grid-template-columns: minmax(0, 0.85fr) minmax(0, 1.15fr);
 		}
 	}
 
 	h2 {
-		font-size: 1rem;
-		margin: 0 0 0.75rem;
+		margin-bottom: var(--space-4);
+		font-size: var(--step-1);
 	}
 
 	.ingredients {
 		margin: 0;
 		padding: 0;
 		list-style: none;
+		border-top: 1px solid var(--border);
 	}
 
 	.ingredients li {
 		display: flex;
 		justify-content: space-between;
-		gap: 1rem;
-		padding: 0.4375rem 0;
+		gap: var(--space-4);
+		padding: var(--space-3) 0;
 		border-bottom: 1px solid var(--border);
 	}
 
 	.measure {
 		flex-shrink: 0;
-		font-size: 0.875rem;
+		font-size: var(--step--1);
+		font-variant-numeric: tabular-nums;
 		color: var(--muted);
 	}
 
 	.steps {
 		margin: 0;
-		padding-left: 1.25rem;
+		padding: 0;
+		list-style: none;
+		counter-reset: step;
 	}
 
 	.steps li {
-		margin-bottom: 0.75rem;
+		position: relative;
+		margin-bottom: var(--space-4);
+		padding-left: 2.25rem;
+		counter-increment: step;
+	}
+
+	/* Numbered badges instead of a plain <ol> marker: recipe steps are the thing
+	   you follow with your eyes while cooking, so they want a clear anchor. */
+	.steps li::before {
+		content: counter(step);
+		position: absolute;
+		left: 0;
+		top: 0.125rem;
+		display: grid;
+		place-items: center;
+		width: 1.5rem;
+		height: 1.5rem;
+		font-size: var(--step--1);
+		font-weight: 600;
+		color: var(--accent-text);
+		background: var(--accent-soft);
+		border-radius: var(--radius-full);
 	}
 
 	.muted {
@@ -244,24 +259,10 @@
 	}
 
 	.error {
-		padding: 0.75rem 1rem;
-		color: #7f1d1d;
-		background: #fef2f2;
-		border: 1px solid #fecaca;
-		border-radius: var(--radius-sm);
-	}
-
-	.empty {
-		padding: 3rem 1rem;
-		text-align: center;
-	}
-
-	.cta {
-		display: inline-block;
-		padding: 0.5rem 1rem;
-		color: var(--accent-contrast);
-		text-decoration: none;
-		background: var(--accent);
-		border-radius: var(--radius-sm);
+		padding: var(--space-3) var(--space-4);
+		color: var(--danger-text);
+		background: var(--danger-soft);
+		border: 1px solid var(--danger-border);
+		border-radius: var(--radius);
 	}
 </style>

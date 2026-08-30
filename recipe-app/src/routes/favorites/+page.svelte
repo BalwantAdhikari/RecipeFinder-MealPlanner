@@ -53,7 +53,7 @@
 	<title>Favorites · Recipe Finder</title>
 </svelte:head>
 
-<header class="head">
+<div class="page-head">
 	<div>
 		<h1>Favorites</h1>
 		<p class="lede">
@@ -63,14 +63,14 @@
 		</p>
 	</div>
 	{#if favorites.count > 0}
-		<button class="ghost" onclick={() => favorites.clear()}>Clear all</button>
+		<button class="btn btn--danger" onclick={() => favorites.clear()}>Clear all</button>
 	{/if}
-</header>
+</div>
 
 {#if favorites.count === 0}
-	<div class="empty">
+	<div class="empty-state">
 		<p>Nothing saved yet. Star a recipe to keep it here.</p>
-		<a class="cta" href={resolve('/')}>Browse recipes</a>
+		<a class="btn btn--primary" href={resolve('/')}>Browse recipes</a>
 	</div>
 {:else if loading}
 	<p class="lede">Loading your favorites…</p>
@@ -79,13 +79,13 @@
 		<p class="warn" role="status">
 			{failed.length} favorite{failed.length === 1 ? '' : 's'} could not be loaded. They may have been
 			removed upstream.
-			<button class="link" onclick={() => failed.forEach((id) => favorites.set(id, false))}>
+			<button class="link-btn" onclick={() => failed.forEach((id) => favorites.set(id, false))}>
 				Remove them
 			</button>
 		</p>
 	{/if}
 
-	<div class="grid">
+	<div class="card-grid">
 		{#each resolved as recipe (recipe.id)}
 			<recipe-card
 				use:setProps={{ recipe, isFavorite: true }}
@@ -95,11 +95,11 @@
 				}}
 			>
 				{#if recipe.source === 'user'}
-					<span slot="badge" class="badge">✎ mine</span>
+					<span slot="badge" class="badge">Mine</span>
 				{/if}
 				<button
 					slot="actions"
-					class="ghost"
+					class="btn btn--sm btn--ghost"
 					onclick={() => {
 						mealPlan.assign(today(), 'dinner', recipe);
 						goto(resolve('/meal-plan'));
@@ -113,87 +113,39 @@
 {/if}
 
 <style>
-	.head {
-		display: flex;
-		flex-wrap: wrap;
-		align-items: center;
-		justify-content: space-between;
-		gap: 1rem;
-		margin-bottom: 1.5rem;
-	}
-
 	h1 {
-		margin: 0 0 0.25rem;
-	}
-
-	.lede {
-		margin: 0;
-		font-size: 0.9375rem;
-		color: var(--muted);
-	}
-
-	.grid {
-		display: grid;
-		gap: 1rem;
-		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+		margin-bottom: 0;
 	}
 
 	.badge {
-		padding: 0.125rem 0.375rem;
-		font-size: 0.625rem;
+		padding: 0.1875rem 0.5rem;
+		font-size: 0.6875rem;
+		font-weight: 600;
 		color: var(--accent-contrast);
 		background: var(--accent);
-		border-radius: 999px;
-	}
-
-	.ghost,
-	.link {
-		padding: 0.4rem 0.75rem;
-		font: inherit;
-		font-size: 0.8125rem;
-		color: var(--text);
-		cursor: pointer;
-		background: transparent;
-		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
-	}
-
-	.ghost:hover {
-		color: var(--accent-text);
-		border-color: var(--accent);
-	}
-
-	.link {
-		padding: 0;
-		color: inherit;
-		text-decoration: underline;
-		border: none;
+		border-radius: var(--radius-full);
 	}
 
 	.warn {
-		padding: 0.625rem 0.875rem;
-		margin-bottom: 1rem;
-		font-size: 0.875rem;
-		background: var(--surface);
+		display: flex;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: var(--space-2);
+		padding: var(--space-3) var(--space-4);
+		margin-bottom: var(--space-4);
+		font-size: var(--step--1);
+		background: var(--surface-2);
 		border: 1px solid var(--border);
-		border-radius: var(--radius-sm);
-	}
-
-	.empty {
-		padding: 2.5rem 1rem;
-		text-align: center;
-		color: var(--muted);
-		background: var(--surface);
-		border: 1px dashed var(--border);
 		border-radius: var(--radius);
 	}
 
-	.cta {
-		display: inline-block;
-		padding: 0.5rem 1rem;
-		color: var(--accent-contrast);
-		text-decoration: none;
-		background: var(--accent);
-		border-radius: var(--radius-sm);
+	.link-btn {
+		padding: 0;
+		font: inherit;
+		color: var(--accent-text);
+		text-decoration: underline;
+		cursor: pointer;
+		background: none;
+		border: none;
 	}
 </style>
