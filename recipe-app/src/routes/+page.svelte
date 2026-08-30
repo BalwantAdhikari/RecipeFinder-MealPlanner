@@ -190,7 +190,7 @@
 	}
 
 	.ghost:hover {
-		color: var(--accent);
+		color: var(--accent-text);
 		border-color: var(--accent);
 	}
 

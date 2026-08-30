@@ -168,12 +168,12 @@
 	}
 
 	.ghost:hover {
-		color: var(--accent);
+		color: var(--accent-text);
 		border-color: var(--accent);
 	}
 
 	.ghost--danger:hover {
-		color: #dc2626;
+		color: var(--danger-text);
 		border-color: #dc2626;
 	}
 

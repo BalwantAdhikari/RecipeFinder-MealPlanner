@@ -107,7 +107,7 @@ export function on(node: HTMLElement, handlers: Record<string, (e: CustomEvent) 
 
 ```svelte
 <recipe-card
-  use:props={{ recipe, isFavorite }}
+  use:setProps={{ recipe, isFavorite }}
   use:on={{
     favoriteToggle: (e) => toggleFavorite(e.detail.recipeId, e.detail.isFavorite),
     viewDetails: (e) => goto(`/recipes/${e.detail.recipeId}`)
@@ -120,14 +120,17 @@ export function on(node: HTMLElement, handlers: Record<string, (e: CustomEvent) 
 
 ### Setting object props safely
 
-A companion `props` action assigns DOM properties instead of attributes. One ordering
+**Do not name this action `props`.** Svelte parses `$props` as a store subscription, so an
+import called `props` breaks the `$props()` rune in any component that uses both.
+
+A companion `setProps` action assigns DOM properties instead of attributes. One ordering
 subtlety matters: in SvelteKit a child's actions run **before** the parent layout's
 `onMount`, so the element is usually not upgraded yet when the action first fires.
 Assigning then creates own properties that shadow the accessors Stencil installs during
 upgrade, and the component renders as if no props were passed. Wait for the definition:
 
 ```ts
-export function props(node: HTMLElement, values: Record<string, unknown>) {
+export function setProps(node: HTMLElement, values: Record<string, unknown>) {
   let current = values,
     ready = false;
   const apply = () => Object.entries(current).forEach(([k, v]) => (node[k] = v));
@@ -262,6 +265,21 @@ recipe-card {
 Each component documents its own variables at the top of its `.css` file. Exposed `part` names are
 listed per component above, for `::part()` styling. A `prefers-color-scheme: dark` block ships with
 sensible dark values.
+
+### Contrast when overriding tokens
+
+Text and fill roles are deliberately separate tokens, because one hue rarely serves both. If you
+theme these, re-check contrast:
+
+| Token                     | Role                                  | Needs                            |
+| ------------------------- | ------------------------------------- | -------------------------------- |
+| `--recipe-card-accent`    | Button fill, paired with white text   | 4.5:1 against white              |
+| `--recipe-card-chip-text` | Small text on `--recipe-card-chip-bg` | 4.5:1 against that background    |
+| `--recipe-card-muted`     | Larger secondary text                 | 4.5:1 against `--recipe-card-bg` |
+
+`--recipe-card-chip-text` exists specifically so that mapping `--recipe-card-muted` to a lighter
+grey cannot silently push chip text below AA — the chips are 0.75rem, where a colour that passes
+elsewhere often fails.
 
 ## Development
 

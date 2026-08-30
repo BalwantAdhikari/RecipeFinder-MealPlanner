@@ -7,6 +7,13 @@ This project follows [semantic versioning](https://semver.org/).
 
 ### Fixed
 
+- **`recipe-card` chip text failed WCAG AA contrast.** At 0.75rem on the tinted chip
+  background, `--recipe-card-muted` (`#71717a`) measures **4.40:1** — just under the 4.5:1
+  threshold. Chips now use dedicated `--recipe-card-chip-text` / `--recipe-card-chip-bg`
+  tokens (7.03:1 light, 5.81:1 dark), kept separate so theming `--recipe-card-muted` cannot
+  reintroduce the failure. Found with axe-core, which reported 36 violations from this one
+  rule.
+
 - **`recipe-filter-panel` reported filters that were not applied.** The active count used
   `Object.keys(selected).length`, so an object like `{ category: undefined, area: undefined }` —
   exactly what a consumer gets from building filters out of URL params — rendered

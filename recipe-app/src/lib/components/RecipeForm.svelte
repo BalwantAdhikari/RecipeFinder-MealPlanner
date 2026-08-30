@@ -282,7 +282,7 @@
 	}
 
 	.req {
-		color: var(--accent);
+		color: var(--accent-text);
 	}
 
 	input,
@@ -316,7 +316,7 @@
 	.err {
 		margin: 0;
 		font-size: 0.8125rem;
-		color: #dc2626;
+		color: var(--danger-text);
 	}
 
 	.err.summary {
@@ -325,6 +325,9 @@
 		border: 1px solid #fecaca;
 		border-radius: var(--radius-sm);
 	}
+
+	/* The dark override below only changes the surface; the text colour comes
+	   from --danger-text, which is already tuned for both. */
 
 	fieldset {
 		display: grid;
@@ -375,7 +378,7 @@
 	}
 
 	.icon:hover:not(:disabled) {
-		color: var(--accent);
+		color: var(--accent-text);
 		border-color: var(--accent);
 	}
 
@@ -420,7 +423,6 @@
 
 	@media (prefers-color-scheme: dark) {
 		.err.summary {
-			color: #fecaca;
 			background: #450a0a;
 			border-color: #7f1d1d;
 		}

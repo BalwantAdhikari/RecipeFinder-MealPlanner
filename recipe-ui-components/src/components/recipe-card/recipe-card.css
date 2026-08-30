@@ -5,6 +5,12 @@
   --recipe-card-radius: 12px;
   --recipe-card-text: #18181b;
   --recipe-card-muted: #71717a;
+  /* Chip text is small (0.75rem) on a tinted background, where the muted colour
+     measures 4.40:1 — just under the 4.5:1 AA threshold. This darker token gets
+     7.03:1. Kept separate so theming `--recipe-card-muted` cannot reintroduce
+     the failure. */
+  --recipe-card-chip-text: #52525b;
+  --recipe-card-chip-bg: #f4f4f5;
   --recipe-card-accent: #c2410c;
   --recipe-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 
@@ -121,8 +127,8 @@
 .chip {
   padding: 0.125rem 0.5rem;
   font-size: 0.75rem;
-  color: var(--recipe-card-muted);
-  background: #f4f4f5;
+  color: var(--recipe-card-chip-text);
+  background: var(--recipe-card-chip-bg);
   border-radius: 999px;
 }
 
@@ -163,9 +169,11 @@
     --recipe-card-border: #3f3f46;
     --recipe-card-text: #fafafa;
     --recipe-card-muted: #a1a1aa;
+    /* 5.81:1 on the dark chip background. */
+    --recipe-card-chip-text: #a1a1aa;
+    --recipe-card-chip-bg: #27272a;
   }
 
-  .chip,
   .media {
     background: #27272a;
   }

@@ -6,9 +6,24 @@
 	--border: #e4e4e7;
 	--text: #18181b;
 	--muted: #71717a;
+	/* A darker muted, for small text on the components' tinted chip background.
+	   --muted itself measures 4.40:1 there — just under AA. Needed because the
+	   installed 0.1.0 uses --recipe-card-muted for chip text; 0.1.1 adds a
+	   dedicated --recipe-card-chip-text token, and this override stays harmless
+	   once that lands. */
+	--muted-strong: #52525b;
 	--accent: #c2410c;
 	--accent-contrast: #ffffff;
+	/* Accent as *text*. Split from --accent because the same hue cannot serve
+	   both roles: #c2410c is 5.18:1 on white (fine) but only 3.84:1 on the dark
+	   background, so links failed AA in dark mode. --accent stays for fills,
+	   where it pairs with white at 5.18:1. */
+	--accent-text: #c2410c;
 	--danger: #dc2626;
+	/* Same split as the accent. #dc2626 is 4.83:1 on white but only 4.41:1 on the
+	   tinted error background and 4.11:1 on the dark background, so error text
+	   needs its own value. #b91c1c is 5.91:1 on the tint and 6.47:1 on white. */
+	--danger-text: #b91c1c;
 	--radius: 12px;
 	--radius-sm: 7px;
 	--max-width: 1120px;
@@ -22,6 +37,12 @@
 		--border: #3f3f46;
 		--text: #fafafa;
 		--muted: #a1a1aa;
+		/* Already 5.81:1 on the dark chip background. */
+		--muted-strong: #a1a1aa;
+		/* 7.10:1 on --bg and 6.32:1 on --surface. */
+		--accent-text: #f97316;
+		/* 7.19:1 on --bg and 5.84:1 on the dark error tint. */
+		--danger-text: #f87171;
 	}
 }
 
@@ -52,7 +73,7 @@ h3 {
 }
 
 a {
-	color: var(--accent);
+	color: var(--accent-text);
 }
 
 /* Feed the app's palette into the Stencil components. They read these from
@@ -66,13 +87,14 @@ recipe-rating {
 	--recipe-card-bg: var(--surface);
 	--recipe-card-border: var(--border);
 	--recipe-card-text: var(--text);
-	--recipe-card-muted: var(--muted);
+	--recipe-card-muted: var(--muted-strong);
+	--recipe-card-chip-text: var(--muted-strong);
 	--search-accent: var(--accent);
 	--search-bg: var(--surface);
 	--search-border: var(--border);
 	--search-text: var(--text);
 	--search-muted: var(--muted);
-	--filter-accent: var(--accent);
+	--filter-accent: var(--accent-text);
 	--filter-bg: var(--surface);
 	--filter-border: var(--border);
 	--filter-text: var(--text);

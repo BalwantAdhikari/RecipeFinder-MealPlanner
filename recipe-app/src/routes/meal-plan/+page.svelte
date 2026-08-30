@@ -152,6 +152,8 @@
 	</div>
 {/if}
 
+<h2 class="visually-hidden">Your week</h2>
+
 <div class="week">
 	{#each DAYS as day (day)}
 		<meal-plan-day
@@ -182,7 +184,7 @@
 <section class="drag-source">
 	<h2>Drag any of these onto a slot</h2>
 	<p class="lede">Or open a recipe and use “Add to meal plan”.</p>
-	<div class="strip">
+	<div class="strip" role="list">
 		{#each data.browse.slice(0, 8) as recipe (recipe.id)}
 			<div
 				class="chip-card"
@@ -354,7 +356,7 @@
 	}
 
 	.ghost:hover {
-		color: #dc2626;
+		color: var(--danger-text);
 		border-color: #dc2626;
 	}
 

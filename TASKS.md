@@ -337,27 +337,56 @@ Probed before writing the client rather than assumed:
 4. **`auto-fit` wrapped the 7th day onto its own row**, defeating the point of a weekly view. Pinned
    to `repeat(7, ...)` above 1080px.
 
-## Phase 6 — Integration hardening
+## Phase 6 — Integration hardening ✅
 
-The graded-but-easily-broken part. Do 6.1 and 6.2 as soon as the first card renders.
-
-- [x] **6.1 Object props** — solved in Phase 3.7 by the `use:props` action, which assigns DOM
-      properties and waits for `customElements.whenDefined()` so it works regardless of whether the
-      element has upgraded yet. Verified: `typeof el.recipe === 'object'` in a real browser.
-- [x] **6.2 Custom events** — solved in Phase 3.7 by the `use:on` action (`addEventListener` plus
-      teardown). Confirmed `favoriteToggle`, `viewDetails`, `searchChange` and `searchClear` all
+- [x] **6.1 Object props** — `use:setProps` assigns DOM properties and waits for
+      `customElements.whenDefined()`, so it works whether or not the element has upgraded.
+      Verified: `typeof el.recipe === 'object'` in a real browser.
+- [x] **6.2 Custom events** — `use:on` (`addEventListener` + teardown). All nine component events
       drive Svelte state.
-- [x] **6.3 Slots** — confirmed: `badge` and `actions` both project through hydration
-- [ ] **6.6 Do not re-create custom elements to reflect state** — use **keyed** each blocks
-      (`{#each recipes as r (r.id)}`) and update props, never rebuild the list. Recreating a
-      `<recipe-card>` forces Stencil to re-hydrate it, the browser to re-decode its image, and the
-      hover state to drop mid-transition — visible as a flicker. Hit this in the dev sandbox: one
-      favorite toggle destroyed and rebuilt all three cards. Fixed by holding element references
-      and assigning only the changed prop. An unkeyed `{#each}` in Svelte is the equivalent trap.
-- [ ] **6.4 Theming** — style across the shadow boundary via CSS custom properties / `::part()`
-- [ ] **6.5** Accessibility and responsive pass on both library and app
+- [x] **6.3 Slots** — `badge`, `actions` and `footer` all project through hydration.
+- [x] **6.4 Theming across the shadow boundary** — the app's tokens reach both components'
+      shadow DOM, confirmed by computed style (`--accent` → `rgb(194, 65, 12)` on buttons inside
+      two different shadow roots). Light and dark palettes agree between app and library.
+- [x] **6.5 Accessibility** — **axe-core: 0 violations across 9 page states × light and dark**
+      (WCAG 2.0/2.1 A + AA + best-practice). Started at 45.
+- [x] **6.6 No element re-creation** — all 12 `{#each}` blocks are keyed, so state changes update
+      props instead of tearing down and rebuilding custom elements.
+- [x] **6.7 Responsive** — no horizontal overflow at 375 / 768 / 1366 px on any page.
+- [x] **6.8 Keyboard** — tab order reaches controls *inside* shadow DOM (favorite button, view
+      button) in document order.
+- [x] **6.9** Added `+error.svelte`. SvelteKit's fallback error page has no `<title>`, which is a
+      WCAG 2.4.2 failure — only visible because the audit covered the 404 route.
 
----
+### Accessibility findings
+
+axe-core against 9 states in both colour schemes. All fixed:
+
+| Issue | Count | Cause |
+|---|---|---|
+| `color-contrast` (chips) | 36 | `#71717a` on the chip background is **4.40:1** — just under 4.5:1 |
+| `aria-required-parent` | 8 | `role="listitem"` on the drag strip with no `role="list"` ancestor |
+| `color-contrast` (links, dark) | 7 | Accent `#c2410c` as text on the dark background is **3.84:1** |
+| `color-contrast` (errors) | 5 | `#dc2626` is 4.41:1 on the error tint and 4.11:1 on dark |
+| `heading-order` | 1 | `meal-plan-day` renders `<h3>`, so `h1 → h3` skipped a level |
+| `document-title` | 2 | No `+error.svelte`, so the 404 page had no title |
+
+**The structural lesson: one hue cannot serve both a text and a fill role.** `#c2410c` is 5.18:1
+paired with white as a button fill, but only 3.84:1 as link text on the dark background. Same for
+`#dc2626`. Both are now split into `--accent` / `--accent-text` and `--danger` / `--danger-text`,
+with the dark scheme overriding only the text variants. The library got the equivalent split:
+`--recipe-card-chip-text` exists so that theming `--recipe-card-muted` cannot silently push 0.75rem
+chip text below AA.
+
+Two process notes worth keeping:
+
+1. **Audit states, not just routes.** The first pass covered 6 URLs and found 45 issues. Widening to
+   9 *states* — filters applied so "Clear all" renders, a submitted form so errors render, the 404 —
+   surfaced 7 more that the route list alone missed.
+2. **A library fix does not reach the app until republished.** The chip contrast fix landed in the
+   library source but the app consumes `0.1.0` from the registry, so axe still failed. Fixed
+   app-side as well (`--muted-strong`), which is the honest cost of consuming from npm rather than
+   linking to source.
 
 ## Phase 7 — Deliverables
 
