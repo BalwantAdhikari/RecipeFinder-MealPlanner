@@ -1,115 +1,169 @@
 <script lang="ts">
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
-	import { SvelteSet } from 'svelte/reactivity';
-	import { on, props } from '$lib/components/stencil';
-	import type { Recipe } from 'recipe-ui-components';
+	import { page } from '$app/state';
+	import { on, setProps } from '$lib/components/stencil';
+	import { filterLocal, mergeResults } from '$lib/api';
+	import { favorites, userRecipes, mealPlan, today } from '$lib/stores';
+	import type { Recipe, RecipeFilters } from 'recipe-ui-components';
+	import type { PageData } from './$types';
 
-	// Phase 3 is the skeleton: these are placeholders so the Stencil integration
-	// can be proven before the TheMealDB client lands in Phase 4.
-	const sample: Recipe[] = [
-		{
-			id: '52772',
-			title: 'Teriyaki Chicken Casserole',
-			image: 'https://www.themealdb.com/images/media/meals/wvpsxx1468256321.jpg',
-			category: 'Chicken',
-			area: 'Japanese',
-			source: 'api'
-		},
-		{
-			id: '52771',
-			title: 'Spicy Arrabiata Penne',
-			image: 'https://www.themealdb.com/images/media/meals/ustsqw1468250014.jpg',
-			category: 'Vegetarian',
-			area: 'Italian',
-			source: 'api'
-		}
-	];
+	let { data }: { data: PageData } = $props();
 
-	let query = $state('');
-	let lastEvent = $state<string>('none yet');
+	// User recipes come from localStorage, which the server cannot read, so the
+	// merge happens here rather than in the load function.
+	const results = $derived(
+		mergeResults(filterLocal(userRecipes.all, data.query, data.filters), data.recipes)
+	);
 
-	// SvelteSet is reactive on mutation, so add/delete alone re-renders. A plain
-	// Set would need reassigning to be tracked.
-	const favorites = new SvelteSet<string>();
+	/**
+	 * Push search/filter state into the URL.
+	 *
+	 * The URL is the single source of truth, so the load function re-runs and the
+	 * result is shareable and back-button friendly. `keepFocus` stops the search
+	 * input losing focus mid-typing; `noScroll` avoids jumping to the top on every
+	 * keystroke.
+	 */
+	function navigate(next: { q?: string; filters?: RecipeFilters }) {
+		// A throwaway builder, serialised to a string below and never held as
+		// state, so the reactive wrapper buys nothing.
+		// eslint-disable-next-line svelte/prefer-svelte-reactivity
+		const params = new URLSearchParams(page.url.searchParams);
+		const q = next.q ?? data.query;
+		const filters = next.filters ?? data.filters;
 
-	function toggleFavorite(id: string, next: boolean) {
-		if (next) favorites.add(id);
-		else favorites.delete(id);
+		if (q.trim()) params.set('q', q.trim());
+		else params.delete('q');
+		if (filters.category) params.set('category', filters.category);
+		else params.delete('category');
+		if (filters.area) params.set('area', filters.area);
+		else params.delete('area');
+
+		const qs = params.toString();
+		const base = resolve('/');
+		// The pathname is resolved above; only a query string is appended, which
+		// the rule cannot see through a template literal.
+		// eslint-disable-next-line svelte/no-navigation-without-resolve
+		goto(qs ? `${base}?${qs}` : base, {
+			keepFocus: true,
+			noScroll: true,
+			replaceState: true
+		});
 	}
+
+	function addToPlan(recipe: Recipe) {
+		mealPlan.assign(today(), 'dinner', recipe);
+		goto(resolve('/meal-plan'));
+	}
+
+	const activeFilterCount = $derived(Object.values(data.filters).filter(Boolean).length);
 </script>
 
 <svelte:head>
 	<title>Discover recipes · Recipe Finder</title>
+	<meta name="description" content="Search and browse recipes from TheMealDB." />
 </svelte:head>
 
 <h1>Discover recipes</h1>
-<p class="lede">
-	Skeleton wiring for Phase 3. The search bar and cards below are Stencil web components consumed
-	from the published npm package.
-</p>
 
-<recipe-search-bar
-	use:props={{ value: query, placeholder: 'Search recipes…' }}
-	use:on={{
-		searchChange: (e) => {
-			query = e.detail.query;
-			lastEvent = `searchChange → ${JSON.stringify(e.detail)}`;
-		},
-		searchClear: () => {
-			lastEvent = 'searchClear';
-		}
-	}}
-></recipe-search-bar>
+<div class="controls">
+	<recipe-search-bar
+		use:setProps={{ value: data.query, placeholder: 'Search recipes by name…' }}
+		use:on={{
+			searchChange: (e) => navigate({ q: e.detail.query }),
+			searchClear: () => navigate({ q: '' })
+		}}
+	></recipe-search-bar>
 
-<p class="status">
-	Query: <code>{query || '(empty)'}</code> · Favorites: <code>{favorites.size}</code> · Last event:
-	<code>{lastEvent}</code>
-</p>
-
-<div class="grid">
-	{#each sample as recipe (recipe.id)}
-		<recipe-card
-			use:props={{ recipe, isFavorite: favorites.has(recipe.id) }}
-			use:on={{
-				favoriteToggle: (e) => {
-					toggleFavorite(e.detail.recipeId, e.detail.isFavorite);
-					lastEvent = `favoriteToggle → ${JSON.stringify(e.detail)}`;
-				},
-				viewDetails: (e) => goto(resolve('/recipes/[id]', { id: e.detail.recipeId }))
-			}}
-		>
-			<span slot="badge" class="badge">{recipe.source === 'user' ? '✎ mine' : 'API'}</span>
-			<button slot="actions" class="ghost" onclick={() => goto(resolve('/meal-plan'))}
-				>Add to plan</button
-			>
-		</recipe-card>
-	{/each}
+	<recipe-filter-panel
+		use:setProps={{ categories: data.categories, areas: data.areas, selected: data.filters }}
+		use:on={{
+			filterChange: (e) => navigate({ filters: e.detail }),
+			filterClear: () => navigate({ filters: {} })
+		}}
+	></recipe-filter-panel>
 </div>
 
+{#if data.error}
+	<p class="error" role="alert">
+		{data.error}
+		<button onclick={() => location.reload()}>Retry</button>
+	</p>
+{/if}
+
+<p class="summary">
+	{#if results.length}
+		{results.length} recipe{results.length === 1 ? '' : 's'}
+		{#if data.query}matching “{data.query}”{/if}
+		{#if activeFilterCount}with {activeFilterCount} filter{activeFilterCount === 1 ? '' : 's'}{/if}
+	{:else if !data.error}
+		No recipes found.
+	{/if}
+</p>
+
+{#if results.length}
+	<div class="grid">
+		{#each results as recipe (recipe.id)}
+			<recipe-card
+				use:setProps={{ recipe, isFavorite: favorites.has(recipe.id) }}
+				use:on={{
+					favoriteToggle: (e) => favorites.set(e.detail.recipeId, e.detail.isFavorite),
+					viewDetails: (e) => goto(resolve('/recipes/[id]', { id: e.detail.recipeId }))
+				}}
+			>
+				{#if recipe.source === 'user'}
+					<span slot="badge" class="badge badge--mine">✎ mine</span>
+				{/if}
+				<button slot="actions" class="ghost" onclick={() => addToPlan(recipe)}>
+					Add to plan
+				</button>
+			</recipe-card>
+		{/each}
+	</div>
+{:else if !data.error}
+	<div class="empty">
+		<p>Nothing matched. Try a different search, clear the filters, or add your own recipe.</p>
+		<a class="cta" href={resolve('/my-recipes/new')}>Add a recipe</a>
+	</div>
+{/if}
+
 <style>
-	.lede {
-		max-width: 60ch;
+	.controls {
+		display: grid;
+		gap: 0.75rem;
+		margin-bottom: 1.25rem;
+	}
+
+	.summary {
+		font-size: 0.875rem;
 		color: var(--muted);
 	}
 
-	.status {
-		padding: 0.625rem 0.75rem;
-		font-size: 0.8125rem;
-		background: var(--surface);
-		border: 1px solid var(--border);
+	.error {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.75rem 1rem;
+		color: #7f1d1d;
+		background: #fef2f2;
+		border: 1px solid #fecaca;
 		border-radius: var(--radius-sm);
 	}
 
-	.status code {
-		color: var(--text);
+	.error button {
+		padding: 0.25rem 0.625rem;
+		font: inherit;
+		font-size: 0.8125rem;
+		cursor: pointer;
+		background: #fff;
+		border: 1px solid #fecaca;
+		border-radius: 6px;
 	}
 
 	.grid {
 		display: grid;
 		gap: 1rem;
 		grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
-		margin-top: 1rem;
 	}
 
 	.badge {
@@ -118,6 +172,10 @@
 		color: #fff;
 		background: #18181b;
 		border-radius: 999px;
+	}
+
+	.badge--mine {
+		background: var(--accent);
 	}
 
 	.ghost {
@@ -132,7 +190,41 @@
 	}
 
 	.ghost:hover {
-		border-color: var(--accent);
 		color: var(--accent);
+		border-color: var(--accent);
+	}
+
+	.empty {
+		padding: 2.5rem 1rem;
+		text-align: center;
+		color: var(--muted);
+		background: var(--surface);
+		border: 1px dashed var(--border);
+		border-radius: var(--radius);
+	}
+
+	.cta {
+		display: inline-block;
+		padding: 0.5rem 1rem;
+		font-size: 0.9375rem;
+		font-weight: 500;
+		color: var(--accent-contrast);
+		text-decoration: none;
+		background: var(--accent);
+		border-radius: var(--radius-sm);
+	}
+
+	@media (prefers-color-scheme: dark) {
+		.error {
+			color: #fecaca;
+			background: #450a0a;
+			border-color: #7f1d1d;
+		}
+
+		.error button {
+			color: #fecaca;
+			background: #7f1d1d;
+			border-color: #991b1b;
+		}
 	}
 </style>

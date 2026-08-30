@@ -48,6 +48,10 @@ export function on(node: HTMLElement, handlers: Record<string, (e: CustomEvent) 
 /**
  * Assign object/array values as DOM *properties* rather than attributes.
  *
+ * Named `setProps`, not `props`: Svelte reads `$props` as a store subscription,
+ * so an import called `props` breaks the `$props()` rune in any component that
+ * uses both.
+ *
  * Svelte sets attributes on elements it does not recognise, which stringifies
  * objects to "[object Object]". Assigning real properties avoids that, and
  * avoids a serialise/parse round trip on every update.
@@ -61,10 +65,10 @@ export function on(node: HTMLElement, handlers: Record<string, (e: CustomEvent) 
  * `whenDefined`.
  *
  * ```svelte
- * <recipe-card use:props={{ recipe, isFavorite }}></recipe-card>
+ * <recipe-card use:setProps={{ recipe, isFavorite }}></recipe-card>
  * ```
  */
-export function props(node: HTMLElement, values: Record<string, unknown>) {
+export function setProps(node: HTMLElement, values: Record<string, unknown>) {
 	let current = values;
 	let ready = false;
 

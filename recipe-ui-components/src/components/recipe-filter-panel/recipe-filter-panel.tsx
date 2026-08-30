@@ -94,7 +94,9 @@ export class RecipeFilterPanel {
     const categories = parseArrayProp<string>(this.categories);
     const areas = parseArrayProp<string>(this.areas);
     const current = this.current;
-    const activeCount = Object.keys(current).length;
+    // Count truthy values, not keys: a consumer may hand us
+    // `{ category: undefined }`, which has a key but no active filter.
+    const activeCount = Object.values(current).filter(Boolean).length;
 
     return (
       <Host>

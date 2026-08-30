@@ -5,9 +5,13 @@ This project follows [semantic versioning](https://semver.org/).
 
 ## 0.1.1
 
-Documentation only — no runtime or API changes.
-
 ### Fixed
+
+- **`recipe-filter-panel` reported filters that were not applied.** The active count used
+  `Object.keys(selected).length`, so an object like `{ category: undefined, area: undefined }` —
+  exactly what a consumer gets from building filters out of URL params — rendered
+  "Clear all (2)" while both selects read "All". Now counts truthy values. Two regression tests
+  added.
 
 - **README told consumers to use the wrong entry point.** `0.1.0` documented
   `recipe-ui-components/loader` as the way to register the elements. That is the lazy build: it

@@ -90,6 +90,32 @@ describe('recipe-filter-panel', () => {
     expect(changeSpy.lastEvent!.detail).toEqual({});
   });
 
+  it('ignores keys whose value is undefined when counting active filters', async () => {
+    // A consumer building filters from URL params can easily produce
+    // `{ category: undefined }`. Counting keys would claim a filter is active.
+    const { root } = await render(
+      <recipe-filter-panel
+        categories={CATEGORIES}
+        areas={AREAS}
+        selected={{ category: undefined, area: undefined }}
+      />,
+    );
+
+    expect(root.shadowRoot!.querySelector('.clear')).toBeNull();
+  });
+
+  it('counts only the set filters when some keys are undefined', async () => {
+    const { root } = await render(
+      <recipe-filter-panel
+        categories={CATEGORIES}
+        areas={AREAS}
+        selected={{ category: 'Beef', area: undefined }}
+      />,
+    );
+
+    expect(root.shadowRoot!.querySelector('.clear')!.textContent).toContain('(1)');
+  });
+
   it('hides the clear button when nothing is selected', async () => {
     const { root } = await render(<recipe-filter-panel categories={CATEGORIES} />);
 

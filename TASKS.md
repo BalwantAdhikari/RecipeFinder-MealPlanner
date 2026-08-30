@@ -138,9 +138,9 @@ Design decisions worth noting:
 - [x] **2.3** Published. Required **2FA** — see gotcha below.
 - [ ] **2.4** Semver discipline: `0.1.0` initial, minor bump per new component, patch per fix.
       Maintain `CHANGELOG.md`
-- [~] **2.7** `0.1.1` prepared and committed (version bump + `CHANGELOG.md` + corrected README).
-      **Publish deferred to Phase 7.5** — it is docs-only, so nothing depends on it and the app runs
-      fine on `0.1.0`. See Phase 7.5.
+- [~] **2.7** `0.1.1` prepared and committed (version bump + `CHANGELOG.md` + corrected README +
+      the `recipe-filter-panel` active-count fix). **Publish deferred to Phase 7.5.** No longer
+      docs-only, but the app works around the same bug locally, so nothing is blocked.
 - [x] **2.5** `repository` (with `directory`), `homepage` and `bugs` added before first publish, so
       `0.1.0` shipped with the GitHub link rather than needing a bump.
 - [x] **2.6** Verified consumable: installed `recipe-ui-components@0.1.0` from the registry into a
@@ -221,16 +221,62 @@ Design decisions worth noting:
    every `href`/`goto()` and `SvelteSet` over a plain `Set` — both worth following, since
    `SvelteSet` is reactive on mutation and needs no defensive copying.
 
-## Phase 4 — Data & state layer
+## Phase 4 — Data & state layer ✅
 
-- [ ] **4.1** API client wrapping TheMealDB (search, filter, lookup) with typed responses and a
-      normalizer to an internal `Recipe` type
-- [ ] **4.2** Fetch remote data in `+page.ts` / `+page.server.ts` load functions, not components
-- [ ] **4.3** Runes stores in `.svelte.ts`: `favorites`, `userRecipes`, `mealPlan`
-- [ ] **4.4** `localStorage` persistence with a `browser` guard and a schema `version` field
-- [ ] **4.5** Merge user-created recipes into discovery/search results so both sources appear together
+- [x] **4.1** `src/lib/api/` — typed TheMealDB client (`themealdb.ts`) plus a normalizer
+      (`normalize.ts`) mapping the wire format to the internal `Recipe` type
+- [x] **4.2** Remote data fetched in `+page.ts` load functions (discovery and details), using
+      SvelteKit's `fetch` so the first render is server-side
+- [x] **4.3** Runes stores in `.svelte.ts`: `favorites`, `userRecipes`, `mealPlan`
+- [x] **4.4** `localStorage` persistence with a `browser` guard and a versioned envelope
+      (`persist.ts`, `SCHEMA_VERSION = 1`)
+- [x] **4.5** User recipes merged into discovery results (`merge.ts`), user-first, de-duplicated
+- [x] **4.6** Discovery state lives in the URL (`?q=`, `?category=`, `?area=`), so searches are
+      shareable and survive reload/back
+- [x] **4.7** Details page renders the loaded recipe (ingredients + instructions), serving both API
+      and user recipes from one route
+- [x] **4.8** **27 offline tests** for the normalizer and merge logic, plus **8 opt-in live
+      integration tests** against the real API (`npm run test:live`)
+- [x] **4.9** Verified end-to-end in a browser: 17/17 checks — live data renders, search drives the
+      URL, filters apply, category+area intersects, favorites persist across reload, meal-plan
+      writes are version-stamped, unknown ids 404, no-results shows an empty state
 
----
+### API findings worth knowing
+
+Probed before writing the client rather than assumed:
+
+| Endpoint | Behaviour |
+|---|---|
+| `search.php?s=x` | Full 54-key records: `strIngredient1..20` + `strMeasure1..20`, instructions |
+| `search.php?s=` | Returns 25 meals — a usable default browse, no extra endpoint needed |
+| `filter.php?c=x` | **Partial** records. Includes `strArea` but **not** `strCategory` |
+| `lookup.php?i=x` | Full record; unknown id returns `{"meals":null}` |
+| no match | `{"meals":null}`, not `[]` and not a 404 |
+| pagination | None. Every response is the full result set |
+
+1. **`filter.php` accepts one dimension at a time.** Filtering by category *and* area needs two
+   calls intersected by id — implemented in `discover()` and covered by a live test that checks the
+   intersection against both single-filter result sets.
+2. **`list.php?a=list` is a trap.** It returns 195 countries, not 195 cuisines with recipes —
+   roughly 85% return zero results, so a dropdown built from it is mostly dead options. The real
+   list is **37**, derived by scanning all 14 category endpoints (793 meals) and collecting distinct
+   `strArea` values. Hardcoded as `AREAS` because deriving it at runtime costs 14 requests.
+3. **Instructions are one blob split by `\r\n`**, sometimes with blank lines and pre-existing
+   "1." / "2)" numbering that has to be stripped, or the UI shows "1. 1. Bring a pot…".
+4. **Ingredient names repeat legitimately.** A flan lists sugar for the caramel and again for the
+   custard, so keying an `{#each}` by ingredient name is a runtime `each_key_duplicate` crash.
+
+### Phase 4 gotchas
+
+1. **Never name an import `props`.** Svelte parses `$props` as a store subscription, so
+   `import { props }` breaks the `$props()` rune in the same component. The action is `setProps`.
+2. **Run `svelte-kit sync` after adding a load function**, or `PageData` types as `{}` and every
+   `data.x` access is an error.
+3. **`{ category: undefined }` still has a key.** Counting active filters by key claimed a filter
+   was applied when none was — visible as "Clear all (2)" with both selects on "All". Fixed on both
+   sides: the load function omits unset keys, and the component now counts truthy values (with two
+   regression tests, bundled into the deferred `0.1.1`).
+4. **`location` does not exist during SSR.** Use `page.params`, not `location.pathname`.
 
 ## Phase 5 — Features
 
