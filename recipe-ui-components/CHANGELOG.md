@@ -5,6 +5,21 @@ This project follows [semantic versioning](https://semver.org/).
 
 ## 0.1.1
 
+### Changed
+
+- **The favorite toggle is now a heart, not a star.** Filled when favorited, outlined when not.
+  Drawn as an inline SVG rather than a `★`/`♥` character, because a dingbat or emoji glyph
+  renders as a tofu box on systems without the right font — and here the glyph _is_ the state
+  indicator.
+
+### Added
+
+- `part="favorite"` on the favorite button, so consumers can restyle or re-colour it from
+  outside. Previously the button was unreachable from the host page: not a part, and inside the
+  shadow root, so even its icon could not be changed without a library release.
+- `--recipe-card-favorite-color`, `--recipe-card-favorite-bg` and
+  `--recipe-card-favorite-active` for theming the toggle without `::part()`.
+
 ### Fixed
 
 - **Cards with a photo were taller than cards without one.** `.media img` used

@@ -36,11 +36,12 @@ A single recipe tile: image, title, category/area meta, and a favorite toggle.
 
 ## Shadow Parts
 
-| Part      | Description               |
-| --------- | ------------------------- |
-| `"card"`  | The outer card container. |
-| `"image"` | The recipe image.         |
-| `"title"` | The recipe title heading. |
+| Part         | Description                 |
+| ------------ | --------------------------- |
+| `"card"`     | The outer card container.   |
+| `"favorite"` | The favorite toggle button. |
+| `"image"`    | The recipe image.           |
+| `"title"`    | The recipe title heading.   |
 
 
 ----------------------------------------------

@@ -50,7 +50,7 @@
 </script>
 
 <svelte:head>
-	<title>Favorites · Recipe Finder</title>
+	<title>Favorites · Smart Rasoi</title>
 </svelte:head>
 
 <div class="container">

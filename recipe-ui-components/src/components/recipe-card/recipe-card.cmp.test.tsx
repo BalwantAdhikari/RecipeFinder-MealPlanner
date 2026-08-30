@@ -75,6 +75,36 @@ describe('recipe-card', () => {
     expect(fav().getAttribute('aria-pressed')).toBe('true');
   });
 
+  it('renders a heart icon, outlined when not favorited', async () => {
+    const { root } = await render(<recipe-card recipe={RECIPE} />);
+    const icon = root.shadowRoot!.querySelector('.fav__icon')!;
+
+    // Outline vs fill is what conveys state, so assert the attribute rather than
+    // just the presence of an icon.
+    expect(icon.getAttribute('fill')).toBe('none');
+    expect(icon.getAttribute('stroke')).toBe('currentColor');
+  });
+
+  it('fills the heart when favorited', async () => {
+    const { root } = await render(<recipe-card recipe={RECIPE} isFavorite={true} />);
+
+    expect(root.shadowRoot!.querySelector('.fav__icon')!.getAttribute('fill')).toBe('currentColor');
+  });
+
+  it('keeps the icon out of the accessibility tree, leaving the button label', async () => {
+    const { root } = await render(<recipe-card recipe={RECIPE} />);
+    const shadow = root.shadowRoot!;
+
+    expect(shadow.querySelector('.fav__icon')!.getAttribute('aria-hidden')).toBe('true');
+    expect(shadow.querySelector('.fav')!.getAttribute('aria-label')).toBe('Add to favorites');
+  });
+
+  it('exposes the favorite button as a part for external styling', async () => {
+    const { root } = await render(<recipe-card recipe={RECIPE} />);
+
+    expect(root.shadowRoot!.querySelector('[part="favorite"]')).toBeTruthy();
+  });
+
   it('emits viewDetails with the recipe id', async () => {
     const { root, spyOnEvent } = await render(<recipe-card recipe={RECIPE} />);
     const spy = spyOnEvent('viewDetails');

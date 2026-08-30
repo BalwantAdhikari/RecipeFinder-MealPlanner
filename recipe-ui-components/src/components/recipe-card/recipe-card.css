@@ -96,14 +96,26 @@
   height: 2rem;
   display: grid;
   place-items: center;
-  font-size: 1.125rem;
+  padding: 0;
   line-height: 1;
-  color: #52525b;
+  color: var(--recipe-card-favorite-color, #52525b);
   cursor: pointer;
-  background: rgba(255, 255, 255, 0.92);
+  background: var(--recipe-card-favorite-bg, rgba(255, 255, 255, 0.92));
   border: none;
   border-radius: 999px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+  transition:
+    color 150ms ease,
+    transform 150ms ease;
+}
+
+.fav__icon {
+  width: 1.0625rem;
+  height: 1.0625rem;
+}
+
+.fav:hover .fav__icon {
+  transform: scale(1.08);
 }
 
 .fav:hover {
@@ -111,7 +123,7 @@
 }
 
 .fav--active {
-  color: var(--recipe-card-accent);
+  color: var(--recipe-card-favorite-active, var(--recipe-card-accent));
 }
 
 .fav:focus-visible,

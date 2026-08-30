@@ -502,6 +502,13 @@ recipe-rating {
 
 	--rating-accent: var(--accent);
 	--rating-size: 1.0625rem;
+
+	/* Favorite toggle. These land once 0.1.1 is installed — the shipped 0.1.0
+	   renders a star and exposes neither a part nor these variables for it, so
+	   the icon cannot be changed from here. */
+	--recipe-card-favorite-color: var(--ink-muted);
+	--recipe-card-favorite-bg: rgba(248, 242, 226, 0.94);
+	--recipe-card-favorite-active: var(--accent);
 }
 
 /* Unknown elements are inline until the loader upgrades them, which otherwise
@@ -549,6 +556,12 @@ recipe-card::part(title) {
 	-webkit-line-clamp: 2;
 	-webkit-box-orient: vertical;
 	overflow: hidden;
+}
+
+/* Also 0.1.1 onward: the part does not exist in 0.1.0. */
+recipe-card::part(favorite) {
+	backdrop-filter: blur(2px);
+	box-shadow: var(--shadow-1);
 }
 
 recipe-search-bar::part(field) {

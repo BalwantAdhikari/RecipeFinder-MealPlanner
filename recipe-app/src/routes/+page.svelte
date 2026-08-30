@@ -64,7 +64,7 @@
 </script>
 
 <svelte:head>
-	<title>Discover recipes · Recipe Finder</title>
+	<title>Discover recipes · Smart Rasoi</title>
 	<meta name="description" content="Search and browse recipes from TheMealDB." />
 </svelte:head>
 

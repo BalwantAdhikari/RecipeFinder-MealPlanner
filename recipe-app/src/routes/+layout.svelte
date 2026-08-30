@@ -53,7 +53,7 @@
 						<path d="M17 15v5" />
 					</svg>
 				</span>
-				<span class="brand-text">Recipe Finder</span>
+				<span class="brand-text">Smart Rasoi</span>
 			</a>
 
 			<nav aria-label="Main">
@@ -77,7 +77,7 @@
 	<footer class="footer">
 		<div class="footer-inner">
 			<div class="footer-col">
-				<p class="footer-title">About Recipe Finder</p>
+				<p class="footer-title">About Smart Rasoi</p>
 				<p>
 					Browse recipes from a public database, keep your favourites, and plan a week of meals.
 					Everything you save stays in your own browser.

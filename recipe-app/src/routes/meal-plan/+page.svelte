@@ -90,7 +90,7 @@
 </script>
 
 <svelte:head>
-	<title>Weekly meal plan · Recipe Finder</title>
+	<title>Weekly meal plan · Smart Rasoi</title>
 </svelte:head>
 
 <div class="container">

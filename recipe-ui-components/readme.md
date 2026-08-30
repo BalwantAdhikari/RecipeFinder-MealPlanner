@@ -169,7 +169,12 @@ export function setProps(node: HTMLElement, values: Record<string, unknown>) {
 | `viewDetails`    | `{ recipeId: string }`                                                   |
 
 Slots: `actions` (footer controls), `badge` (image overlay).
-Parts: `card`, `image`, `title`.
+Parts: `card`, `image`, `title`, `favorite`.
+
+The favorite toggle is a heart — filled when `isFavorite`, outlined when not — drawn as an
+inline SVG so it does not depend on a font having the glyph. Theme it with
+`--recipe-card-favorite-color`, `--recipe-card-favorite-bg` and
+`--recipe-card-favorite-active`, or via `::part(favorite)`.
 
 ### `<recipe-search-bar>`
 

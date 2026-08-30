@@ -14,6 +14,7 @@ import type { Recipe } from '../../types/recipe';
  * @part card - The outer card container.
  * @part image - The recipe image.
  * @part title - The recipe title heading.
+ * @part favorite - The favorite toggle button.
  */
 @Component({
   tag: 'recipe-card',
@@ -94,12 +95,28 @@ export class RecipeCard {
             </div>
             <button
               type="button"
+              part="favorite"
               class={{ fav: true, 'fav--active': this.isFavorite }}
               aria-pressed={String(this.isFavorite)}
               aria-label={this.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
               onClick={this.handleFavorite}
             >
-              {this.isFavorite ? '★' : '☆'}
+              {/* Inline SVG rather than a ★/♥ character: an emoji or dingbat glyph
+                  renders as a tofu box on systems without the right font, and the
+                  filled/outline distinction is what communicates state here. */}
+              <svg
+                class="fav__icon"
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+                fill={this.isFavorite ? 'currentColor' : 'none'}
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+              >
+                <path d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21l8.8-8.3a5 5 0 0 0 0-7.1Z" />
+              </svg>
             </button>
           </div>
 
