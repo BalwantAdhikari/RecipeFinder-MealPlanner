@@ -1,22 +1,84 @@
 <script lang="ts">
+	import { goto } from '$app/navigation';
+	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
-	const id = $derived(page.params.id);
+	import RecipeForm from '$lib/components/RecipeForm.svelte';
+	import { recipeToDraft, emptyDraft } from '$lib/validation';
+	import { userRecipes, mealPlan } from '$lib/stores';
+	import type { PageData } from './$types';
+
+	let { data }: { data: PageData } = $props();
+
+	const id = $derived(page.params.id ?? '');
+	const existing = $derived(userRecipes.get(id));
+
+	// The store reads localStorage, so on the server `existing` is always
+	// undefined and the draft fills in on hydration. Keyed on the id below so the
+	// form remounts with the right values once it resolves.
+	let draft = $state(emptyDraft());
+	let loadedFor = $state('');
+
+	$effect(() => {
+		if (existing && loadedFor !== existing.id) {
+			draft = recipeToDraft(existing);
+			loadedFor = existing.id;
+		}
+	});
 </script>
 
 <svelte:head>
-	<title>Edit recipe · Recipe Finder</title>
+	<title>{existing ? `Edit ${existing.title}` : 'Edit recipe'} · Recipe Finder</title>
 </svelte:head>
 
-<h1>Edit recipe</h1>
-<p>Route param <code>id</code>: <strong>{id}</strong></p>
-<p class="todo">Placeholder — implemented in <strong>Phase 5.3 / 5.4</strong>.</p>
+<nav class="crumbs" aria-label="Breadcrumb">
+	<a href={resolve('/my-recipes')}>My recipes</a> / Edit
+</nav>
+
+{#if !existing}
+	<h1>Recipe not found</h1>
+	<p class="muted">
+		Only recipes you created can be edited, and they are stored in this browser. This one may have
+		been deleted or created elsewhere.
+	</p>
+	<a class="cta" href={resolve('/my-recipes')}>Back to my recipes</a>
+{:else}
+	<h1>Edit recipe</h1>
+
+	<RecipeForm
+		bind:draft
+		categories={data.categories}
+		submitLabel="Save changes"
+		onsubmit={(recipe) => {
+			const updated = userRecipes.update(id, recipe);
+			// Keep the planner's denormalised title/image in step.
+			if (updated) mealPlan.syncRecipe(updated);
+			goto(resolve('/recipes/[id]', { id }));
+		}}
+		oncancel={() => goto(resolve('/recipes/[id]', { id }))}
+	/>
+{/if}
 
 <style>
-	.todo {
-		padding: 0.75rem 1rem;
+	.crumbs {
+		margin-bottom: 0.5rem;
+		font-size: 0.8125rem;
 		color: var(--muted);
-		background: var(--surface);
-		border: 1px dashed var(--border);
+	}
+
+	h1 {
+		margin-top: 0;
+	}
+
+	.muted {
+		color: var(--muted);
+	}
+
+	.cta {
+		display: inline-block;
+		padding: 0.5rem 1rem;
+		color: var(--accent-contrast);
+		text-decoration: none;
+		background: var(--accent);
 		border-radius: var(--radius-sm);
 	}
 </style>

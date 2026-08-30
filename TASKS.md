@@ -288,21 +288,54 @@ Probed before writing the client rather than assumed:
    regression tests, bundled into the deferred `0.1.1`).
 4. **`location` does not exist during SSR.** Use `page.params`, not `location.pathname`.
 
-## Phase 5 — Features
+## Phase 5 — Features ✅
 
-- [ ] **5.1 Discovery** — search → API query, category/area filters, `recipe-card` grid, loading /
-      empty / error states
-- [ ] **5.2 Details page** — image, meta, ingredients table, numbered instructions; handles both
-      API and user-created recipes; favorite toggle; "add to meal plan"
-- [ ] **5.3 Recipe CRUD** — create/edit form with dynamic ingredient rows; delete with confirm;
-      edit/delete restricted to user-created recipes
-- [ ] **5.4 Validation** — required title + category, ≥1 ingredient, ≥1 instruction step, valid
-      image URL; inline per-field errors; submit blocked while invalid
-- [ ] **5.5 Favorites** — toggle from card and details, `/favorites` page, remove, empty state
-- [ ] **5.6 Meal planner** — 7 `meal-plan-day` columns with breakfast/lunch/dinner slots; assign
-      via picker or drag-and-drop; change, remove, clear week
+- [x] **5.1 Discovery** — search, category/cuisine filters, `recipe-card` grid, loading/empty/error
+      states. State lives in the URL (done in Phase 4).
+- [x] **5.2 Details page** — image, meta, chips, tags, ingredients table, numbered steps; serves
+      both API and user recipes from one route; favorite toggle and "add to meal plan".
+- [x] **5.3 Recipe CRUD** — `RecipeForm.svelte` shared by create and edit, with dynamic
+      ingredient/step rows, step reordering, and delete behind a named confirmation. Editing and
+      deleting are restricted to user recipes; API recipes have no such controls.
+- [x] **5.4 Validation** — `src/lib/validation.ts`, pure and unit-tested (28 tests). Required title
+      and category, ≥1 ingredient, ≥1 step, length caps, and an image-URL check that rejects
+      non-http(s) schemes. Errors show per field only after blur or a submit attempt.
+- [x] **5.5 Favorites** — toggle from card and details, dedicated page, clear-all, empty state.
+- [x] **5.6 Meal planner** — 7 day columns × 3 slots, today highlighted, assign via picker **or**
+      drag-and-drop, change/remove/clear-week, per-day summary in the `footer` slot.
+- [x] **5.7** Deleting a user recipe also removes it from favorites and the meal plan, so nothing
+      dangles. Editing one re-syncs the planner's denormalised title/image.
+- [x] **5.8** Verified in a browser: **34/34 checks, 0 page errors** — covering the full create →
+      edit → favorite → plan → delete lifecycle, validation blocking, drag-and-drop, and
+      persistence across reload.
 
----
+### Design decisions
+
+- **Favorites store ids, not recipes.** Titles and images can change upstream or be user-edited, so
+  the page resolves each id at render (store for user recipes, lookup for API ones) rather than
+  serving a stale copy from `localStorage`.
+- **The meal plan denormalises title and image.** The opposite trade to favorites, and deliberate:
+  rendering 21 slots must not cost 21 lookups. `mealPlan.syncRecipe()` keeps copies fresh when a
+  user recipe is edited.
+- **The submit button is never disabled.** A disabled button gives no explanation. Submitting an
+  invalid form instead reveals every error, announces the count, and focuses the first bad field.
+- **Blank ingredient/step rows are ignored, not errors.** A trailing empty row is normal while
+  typing; only the absence of *any* filled row is a validation failure.
+
+### Phase 5 gotchas
+
+1. **`await tick()` before querying for freshly rendered attributes.** The focus-first-error logic
+   silently did nothing: setting `submitAttempted` is what renders the `aria-invalid` attributes, so
+   querying in the same synchronous block found none and focus stayed on the submit button. Caught
+   because the browser check asserted *which* element had focus rather than just that submit was
+   blocked.
+2. **`{#each}` needs an item binding even when only the index is used**, which is unavoidable for
+   `bind:value={array[i]}` on primitives. ESLint's `no-unused-vars` now allows a leading underscore.
+   For object rows, bind to the item directly — `$state` makes them deep proxies.
+3. **`autofocus` is an a11y error, not a warning to ignore.** Replaced with a small action that
+   focuses on mount, which is legitimate here because the input only appears in response to a click.
+4. **`auto-fit` wrapped the 7th day onto its own row**, defeating the point of a weekly view. Pinned
+   to `repeat(7, ...)` above 1080px.
 
 ## Phase 6 — Integration hardening
 
