@@ -92,6 +92,34 @@ describe('extractInstructions', () => {
 		]);
 	});
 
+	it('drops lines that are only a step marker', () => {
+		// Several TheMealDB records put the step number on its own line (id 53322).
+		// Without dropping these, every other rendered step is a stray digit.
+		expect(
+			extractInstructions(
+				'Melt the sugar.\r\n\r\n2\r\nPreheat the oven.\r\n\r\n3\r\nHeat the milk.'
+			)
+		).toEqual(['Melt the sugar.', 'Preheat the oven.', 'Heat the milk.']);
+	});
+
+	it('drops marker-only lines in their other punctuation forms', () => {
+		expect(extractInstructions('One.\n2.\nTwo.\n3)\nThree.\nSTEP 4\nFour.')).toEqual([
+			'One.',
+			'Two.',
+			'Three.',
+			'Four.'
+		]);
+	});
+
+	it('keeps a line whose content merely begins with digits', () => {
+		// The marker rule must not eat real content.
+		expect(extractInstructions('200g of flour, sifted.')).toEqual(['200g of flour, sifted.']);
+		expect(extractInstructions('350ml milk\n2 eggs, beaten')).toEqual([
+			'350ml milk',
+			'2 eggs, beaten'
+		]);
+	});
+
 	it('does not mangle a step that merely starts with a number word', () => {
 		expect(extractInstructions('200g of flour, sifted.')).toEqual(['200g of flour, sifted.']);
 	});

@@ -60,8 +60,30 @@
 					{/if}
 
 					<div class="actions">
-						<button class:active={isFavorite} onclick={() => favorites.set(recipe.id, !isFavorite)}>
-							{isFavorite ? '★ Favorited' : '☆ Add to favorites'}
+						<button
+							class="btn"
+							class:active={isFavorite}
+							aria-pressed={isFavorite}
+							onclick={() => favorites.set(recipe.id, !isFavorite)}
+						>
+							<svg
+								class="heart"
+								viewBox="0 0 24 24"
+								width="15"
+								height="15"
+								aria-hidden="true"
+								focusable="false"
+								fill={isFavorite ? 'currentColor' : 'none'}
+								stroke="currentColor"
+								stroke-width="2"
+								stroke-linecap="round"
+								stroke-linejoin="round"
+							>
+								<path
+									d="M20.8 5.6a5 5 0 0 0-7.1 0L12 7.3l-1.7-1.7a5 5 0 1 0-7.1 7.1L12 21l8.8-8.3a5 5 0 0 0 0-7.1Z"
+								/>
+							</svg>
+							{isFavorite ? 'Favorited' : 'Add to favorites'}
 						</button>
 
 						<button
@@ -178,10 +200,15 @@
 		margin-bottom: var(--space-4);
 	}
 
+	/* Active state is a tint on the same pill, not a different size or shape, so
+	   the action row stays even. */
 	.actions .active {
 		color: var(--accent-deep);
 		border-color: var(--accent);
-		background: var(--surface-2);
+	}
+
+	.heart {
+		flex-shrink: 0;
 	}
 
 	.body {

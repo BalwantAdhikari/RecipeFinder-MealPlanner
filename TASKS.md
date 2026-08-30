@@ -269,8 +269,12 @@ Probed before writing the client rather than assumed:
    roughly 85% return zero results, so a dropdown built from it is mostly dead options. The real
    list is **37**, derived by scanning all 14 category endpoints (793 meals) and collecting distinct
    `strArea` values. Hardcoded as `AREAS` because deriving it at runtime costs 14 requests.
-3. **Instructions are one blob split by `\r\n`**, sometimes with blank lines and pre-existing
-   "1." / "2)" numbering that has to be stripped, or the UI shows "1. 1. Bring a pot…".
+3. **Instructions numbering comes in two forms needing opposite treatment.** A line that is
+   *only* a number is a step marker on its own line — **40% of the browse set** does this, which
+   would have rendered 42 stray digit steps. Those lines must be dropped. A line that starts with
+   a number *and* has content carries inline numbering, where only the prefix is stripped. Content
+   like "200g of flour" must survive both, so the prefix pattern requires punctuation and
+   whitespace after the digits rather than matching any leading number.
 4. **Excluding a category cannot be done by name alone.** `filter.php` omits `strCategory`, so an
    area-filtered result set has no category to test. The ids of every recipe in an excluded
    category are fetched once, cached at module level, and subtracted from all results. Measured:

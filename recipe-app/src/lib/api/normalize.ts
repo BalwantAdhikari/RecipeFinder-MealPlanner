@@ -57,21 +57,41 @@ export function extractIngredients(raw: Record<string, string | null>): RecipeIn
 	return out;
 }
 
+/** A line that is nothing but a step marker: "2", "3.", "4)", "STEP 5". */
+const STEP_MARKER_ONLY = /^(?:step\s*)?\d+\s*[.):-]?$/i;
+
+/** Leading numbering on a line that also carries content: "1. Boil water." */
+const LEADING_NUMBER = /^(?:step\s*)?\d+\s*[.)]\s+/i;
+
 /**
  * Split the instructions blob into ordered steps.
  *
  * Splits on newlines rather than sentences: sentence splitting mangles
- * "Cook for 9 minutes." style text and abbreviations. Also strips any leading
- * "1." / "2)" numbering the source already includes, since the UI numbers the
- * list itself and would otherwise show "1. 1. Bring a pot...".
+ * "Cook for 9 minutes." style text and abbreviations.
+ *
+ * Two kinds of source numbering have to be handled, and they need opposite
+ * treatment:
+ *
+ * 1. **A line that is only a number** is a step marker sitting on its own line,
+ *    which several TheMealDB records do (id 53322 reads
+ *    `"...containers yield about 120 milliliters each."`, `""`, `"2"`,
+ *    `"Preheat oven to 150 degrees..."`). Those lines must be dropped entirely,
+ *    or every other rendered step is a stray digit.
+ * 2. **A line that starts with a number and then has content** carries its own
+ *    numbering inline. Only the prefix is stripped, since the UI numbers the
+ *    list itself and would otherwise show "1. 1. Bring a pot...".
+ *
+ * A line like "200g of flour, sifted." must survive both rules untouched, which
+ * is why the prefix pattern requires punctuation *and* whitespace after the
+ * digits rather than matching any leading number.
  */
 export function extractInstructions(blob: string | null | undefined): string[] {
 	if (!blob) return [];
 	return blob
 		.split(/\r?\n/)
 		.map((line) => line.trim())
-		.filter(Boolean)
-		.map((line) => line.replace(/^(?:STEP\s*)?\d+[.)]\s*/i, '').trim())
+		.filter((line) => line.length > 0 && !STEP_MARKER_ONLY.test(line))
+		.map((line) => line.replace(LEADING_NUMBER, '').trim())
 		.filter(Boolean);
 }
 
