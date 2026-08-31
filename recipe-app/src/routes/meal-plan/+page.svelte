@@ -491,11 +491,16 @@
 		gap: var(--space-2);
 		width: 8.5rem;
 		padding: var(--space-2);
+		/* These tiles are <button>s, so each of these resets an unwanted UA default:
+		   without `font` they render in Arial rather than the app stack, without
+		   `color` they take `buttontext` (pure black on the brown tile), and
+		   without `text-align` the label is centred while every other card in the
+		   app is left-aligned. */
+		font: inherit;
 		font-size: var(--step--1);
 		font-weight: 500;
-		/* These tiles are <button>s, so without this they take the UA default
-		   `buttontext` — pure black on the brown tile. */
 		color: var(--cream);
+		text-align: left;
 		cursor: grab;
 		background: var(--bg-soft);
 		border: 1px solid var(--border);
