@@ -575,6 +575,15 @@ class of bug as the form inputs in the commit before; both now use `--border-str
 does not scroll, so a card below the fold gets clicked at whatever occupies those coordinates
 instead. Two failing assertions were the test's fault, not the product's.
 
+**Twelve categories do not have twelve legible icons.** The first pill row used a hand-drawn
+pictogram per category at 17px. Chicken read as a magnifying glass — directly beside the search bar
+— and Goat, Lamb and Dessert read as nothing at all. Replaced with a dot in the category's colour,
+which is the colour the card label already uses, so the two views agree by construction. The "All
+recipes" pill keeps a glyph, since it is a reset and has no colour of its own.
+
+A follow-on: `background: currentColor` applied to both the dot and the glyph rendered the active
+pill's icon as a solid square, because it filled the SVG's box. Two rules, not one.
+
 ### Deliberately not done
 
 **No rating shown.** `0.2.0` adds a `rating` slot and the app leaves it empty. TheMealDB has no

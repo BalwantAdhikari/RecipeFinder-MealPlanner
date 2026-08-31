@@ -3,7 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { page } from '$app/state';
 	import { on, setProps } from '$lib/components/stencil';
-	import { categoryIcon, categoryColor } from '$lib/components/category-icons';
+	import { categoryColor } from '$lib/components/category-icons';
 	import { filterLocal, mergeResults } from '$lib/api';
 	import { favorites, userRecipes, mealPlan, today } from '$lib/stores';
 	import type { Recipe, RecipeFilters } from 'recipe-ui-components';
@@ -225,9 +225,7 @@
 					data-sveltekit-noscroll
 					data-sveltekit-replacestate
 				>
-					<svg class="pill__icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false">
-						<path d={categoryIcon(category)} />
-					</svg>
+					<span class="pill__dot" aria-hidden="true"></span>
 					{category}
 				</a>
 			{/each}
@@ -297,6 +295,14 @@
 </div>
 
 <style>
+	/*
+	 * The header is sticky, so the "Browse Recipes" anchor would otherwise scroll
+	 * the gallery heading underneath it. Sized to the header plus a little air.
+	 */
+	#gallery {
+		scroll-margin-top: 5.5rem;
+	}
+
 	/* Search and filters read as one control surface floating on the page. */
 	.toolbar {
 		display: grid;
@@ -351,11 +357,27 @@
 			color 0.15s ease;
 	}
 
+	/*
+	 * A dot in the category's colour rather than a pictogram. Twelve API
+	 * categories do not have twelve legible glyphs at 17px — the first attempt
+	 * had Chicken reading as a magnifying glass next to the search bar, and Goat,
+	 * Lamb and Dessert reading as nothing. The dot carries the same colour the
+	 * card label uses, so the two views agree.
+	 */
+	.pill__dot {
+		width: 0.5rem;
+		height: 0.5rem;
+		flex: 0 0 auto;
+		background: var(--pill-accent, var(--muted-strong));
+		border-radius: 50%;
+	}
+
+	/* The "All recipes" pill keeps a glyph, since it is a reset rather than a
+	   category and has no colour of its own. */
 	.pill__icon {
 		width: 1.05rem;
 		height: 1.05rem;
-		/* Each category's own colour, set inline; falls back for the "All" pill. */
-		color: var(--pill-accent, var(--muted-strong));
+		color: var(--muted-strong);
 		fill: none;
 		stroke: currentColor;
 		stroke-width: 1.8;
@@ -383,8 +405,14 @@
 		border-color: var(--accent-on-soft);
 	}
 
+	/* Separate rules: `background` on the glyph would fill its box and render the
+	   icon as a solid square. */
 	.pill--on .pill__icon {
 		color: currentColor;
+	}
+
+	.pill--on .pill__dot {
+		background: currentColor;
 	}
 
 	.summary {
