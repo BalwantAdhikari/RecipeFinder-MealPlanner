@@ -1,18 +1,15 @@
 /**
- * Merge user-created recipes into API results.
+ * Folds the user's own recipes into the API results so discovery covers both.
  *
- * The assignment asks for one unified discovery experience, so a recipe the user
- * wrote must be findable alongside TheMealDB's. Search and filtering for user
- * recipes happen in memory here, since they only exist client-side.
- *
- * User recipes are placed first: they are the smaller, more relevant set, and
- * burying them under 25 API results would make them feel absent.
+ * Filtering happens in memory here because user recipes only exist client-side.
+ * They go first — there are few of them, and under 25 API results they'd feel
+ * missing.
  */
 
 import type { Recipe, RecipeFilters } from 'recipe-ui-components';
 import { isExcludedCategory } from './themealdb';
 
-/** Case-insensitive substring match on the title, matching the API's behaviour. */
+/** Substring match on the title, case-insensitive, same as the API does. */
 function matchesQuery(recipe: Recipe, query: string): boolean {
 	if (!query) return true;
 	return recipe.title.toLowerCase().includes(query.toLowerCase());
@@ -29,18 +26,17 @@ export function filterLocal(recipes: Recipe[], query: string, filters: RecipeFil
 	const trimmed = query.trim();
 	return recipes.filter(
 		(r) =>
-			// Same exclusion as the API side, so a user recipe in a hidden category
-			// does not reappear through the local path.
+			// Excluded categories are dropped here too, or a user recipe in one
+			// would sneak back in through the local path.
 			!isExcludedCategory(r.category) && matchesQuery(r, trimmed) && matchesFilters(r, filters)
 	);
 }
 
 /**
- * Combine local and remote results, user recipes first.
+ * Local results first, then remote, de-duplicated by id.
  *
- * De-duplicates by id so a user recipe never appears twice. Ids cannot actually
- * collide (user ids are `user-` prefixed) but the guard keeps this honest if the
- * id scheme ever changes.
+ * Ids can't collide today — user ids are `user-` prefixed — but the check keeps
+ * this correct if that ever changes.
  */
 export function mergeResults(local: Recipe[], remote: Recipe[]): Recipe[] {
 	const seen = new Set(local.map((r) => r.id));

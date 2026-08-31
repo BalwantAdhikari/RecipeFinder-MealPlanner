@@ -24,10 +24,10 @@ this repo but consumed as a third party would consume it.
 │   │                        meal-plan-day, recipe-rating
 │   └── src/index.html       standalone dev sandbox for the components
 │
-├── recipe-app/              SvelteKit application → deployed to Vercel
-│   ├── src/lib/api/         TheMealDB client + normalizer
-│   ├── src/lib/stores/      favorites, user recipes, meal plan (localStorage)
-│   ├── src/lib/components/  Stencil interop actions + the recipe form
+└── recipe-app/              SvelteKit application → deployed to Vercel
+    ├── src/lib/api/         TheMealDB client + normalizer
+    ├── src/lib/stores/      favorites, user recipes, meal plan (localStorage)
+    ├── src/lib/components/  Stencil interop actions + the recipe form
     └── src/routes/          seven routes
 ```
 

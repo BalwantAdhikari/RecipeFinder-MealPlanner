@@ -1,16 +1,11 @@
 /**
- * Versioned `localStorage` persistence.
+ * `localStorage` with a version stamp. There's no backend, so favourites, user
+ * recipes and the meal plan live in the browser.
  *
- * There is no backend, so favorites, user recipes and the meal plan live in the
- * browser. Two things this guards against:
- *
- * - **SSR.** `localStorage` does not exist on the server, so every access is
- *   behind SvelteKit's `browser` flag.
- * - **Shape drift.** Stored data outlives code. Each payload is wrapped with a
- *   schema `version`; on mismatch the value is discarded rather than fed to code
- *   that expects a different shape. Discarding is the right call here because
- *   everything stored is reconstructible by the user, and a migration path for
- *   throwaway data is not worth the complexity.
+ * Every access is behind the `browser` flag, since `localStorage` doesn't exist
+ * on the server. Stored data outlives code, so each payload carries a schema
+ * version and anything that doesn't match is thrown away — the user can
+ * recreate all of it, so a migration path isn't worth writing.
  */
 
 import { browser } from '$app/environment';
@@ -32,10 +27,8 @@ export const keys = {
 } as const;
 
 /**
- * Read a persisted value, falling back on anything unexpected.
- *
- * Returns `fallback` when: running on the server, the key is absent, the JSON is
- * malformed, the envelope is unrecognisable, or the schema version differs.
+ * Reads a stored value, returning `fallback` for anything unexpected — server,
+ * missing key, bad JSON, wrong envelope shape or a stale schema version.
  */
 export function load<T>(key: string, fallback: T): T {
 	if (!browser) return fallback;
@@ -44,7 +37,7 @@ export function load<T>(key: string, fallback: T): T {
 	try {
 		raw = localStorage.getItem(key);
 	} catch {
-		// Private-mode Safari and similar can throw on access, not just on write.
+		// Safari in private mode can throw on read, not just on write.
 		return fallback;
 	}
 	if (!raw) return fallback;
@@ -61,10 +54,9 @@ export function load<T>(key: string, fallback: T): T {
 }
 
 /**
- * Persist a value inside a versioned envelope.
- *
- * Swallows write errors: a full or blocked quota should not break the app, since
- * the in-memory state remains correct for the session.
+ * Writes a value inside a versioned envelope. Write failures are ignored: a full
+ * or blocked quota shouldn't break the app, and in-memory state stays right for
+ * the rest of the session.
  */
 export function save<T>(key: string, data: T): void {
 	if (!browser) return;
@@ -72,11 +64,11 @@ export function save<T>(key: string, data: T): void {
 		const envelope: Envelope<T> = { version: SCHEMA_VERSION, data };
 		localStorage.setItem(key, JSON.stringify(envelope));
 	} catch {
-		// Ignore — quota exceeded or storage disabled.
+		// Quota exceeded, or storage disabled.
 	}
 }
 
-/** Remove a persisted value. Used by the "clear" actions. */
+/** Drops a stored value. Used by the "clear" actions. */
 export function remove(key: string): void {
 	if (!browser) return;
 	try {

@@ -1,17 +1,11 @@
-/**
- * Helpers for talking to the Stencil custom elements.
- *
- * Two problems need solving at the boundary, and both are solved here once
- * rather than at every call site.
- */
+/** Two small actions for working with the Stencil elements. */
 
 /**
- * Bind listeners for camelCase custom events.
+ * Listens for the components' camelCase custom events.
  *
- * Svelte 5's `onclick`-style shorthand only covers known DOM events, so
- * `onfavoriteToggle` is not a thing. Rather than fall back to the deprecated
- * `on:` directive everywhere, this action wires `addEventListener` and tears
- * the listeners down on destroy.
+ * Svelte's `onclick` shorthand only knows real DOM events, so `onfavoriteToggle`
+ * doesn't exist and `on:` is deprecated. This just wires up addEventListener and
+ * cleans up after itself.
  *
  * ```svelte
  * <recipe-card use:on={{ favoriteToggle: (e) => toggle(e.detail) }}></recipe-card>
@@ -46,23 +40,16 @@ export function on(node: HTMLElement, handlers: Record<string, (e: CustomEvent) 
 }
 
 /**
- * Assign object/array values as DOM *properties* rather than attributes.
+ * Sets objects and arrays as DOM properties instead of attributes, since Svelte
+ * would otherwise stringify them to "[object Object]".
  *
- * Named `setProps`, not `props`: Svelte reads `$props` as a store subscription,
- * so an import called `props` breaks the `$props()` rune in any component that
- * uses both.
+ * Don't rename this to `props` — Svelte treats `$props` as a store
+ * subscription, so an import by that name breaks the `$props()` rune.
  *
- * Svelte sets attributes on elements it does not recognise, which stringifies
- * objects to "[object Object]". Assigning real properties avoids that, and
- * avoids a serialise/parse round trip on every update.
- *
- * The ordering subtlety: a child component's actions run *before* the parent
- * layout's `onMount`, so the custom element is usually still un-upgraded when
- * this action first fires. Assigning then would create own properties that
- * shadow the accessors Stencil installs on the prototype during upgrade, and
- * the component would render as though no props were passed at all. So when the
- * element is a not-yet-defined custom element, assignment waits for
- * `whenDefined`.
+ * The `whenDefined` wait matters more than it looks: a child's actions run
+ * before the parent layout's `onMount`, so the element usually isn't upgraded
+ * yet. Assigning early creates own properties that shadow Stencil's accessors,
+ * and the component renders as if it got nothing.
  *
  * ```svelte
  * <recipe-card use:setProps={{ recipe, isFavorite }}></recipe-card>
@@ -92,7 +79,7 @@ export function setProps(node: HTMLElement, values: Record<string, unknown>) {
 	return {
 		update(next: Record<string, unknown>) {
 			current = next;
-			// Before upgrade, whenDefined() will apply the latest `current`.
+			// Before upgrade, whenDefined() picks up the latest `current` anyway.
 			if (ready) apply();
 		}
 	};

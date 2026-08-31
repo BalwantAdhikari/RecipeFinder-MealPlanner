@@ -1,20 +1,14 @@
 /**
- * TheMealDB client.
+ * TheMealDB client, on the public test key `1` — no registration, no documented
+ * rate limit.
  *
- * Base URL uses the public test key `1`, which needs no registration and has no
- * documented rate limit.
- *
- * Endpoint quirks this module hides from callers:
- *
- * - No results is `{"meals": null}`, not an empty array or a 404.
- * - `search.php` returns full 54-key records (ingredients + instructions).
- *   `filter.php` returns partial records: `idMeal`, `strMeal`, `strMealThumb`,
- *   `strArea`, `strCountry` — note **no** `strCategory`.
- * - `filter.php` accepts only one dimension at a time, so filtering by category
- *   *and* area requires two calls intersected by id.
- * - `search.php?s=` (empty query) returns 25 meals, which makes a reasonable
- *   default browse without a separate endpoint.
- * - There is no pagination. Every response is the full result set.
+ * The endpoints have a few quirks worth knowing, all handled in here. No results
+ * comes back as `{"meals": null}` rather than an empty array or a 404.
+ * `search.php` gives full 54-key records while `filter.php` gives partial ones
+ * with no `strCategory` at all. `filter.php` only takes one dimension at a time,
+ * so category *and* area means two calls intersected by id. An empty
+ * `search.php?s=` conveniently returns 25 meals, which is our default browse.
+ * And there's no pagination anywhere — every response is the whole result set.
  */
 
 import type { Recipe, RecipeFilters } from 'recipe-ui-components';
@@ -27,19 +21,19 @@ import {
 
 const BASE = 'https://www.themealdb.com/api/json/v1/1';
 
-/** SvelteKit's load `fetch`, so calls are SSR-safe and get request context. */
+/** SvelteKit's load `fetch`, so calls work during SSR and keep request context. */
 export type Fetch = typeof globalThis.fetch;
 
 /**
  * The 37 cuisines that actually have recipes.
  *
- * `list.php?a=list` returns 195 entries — every country TheMealDB knows, not
- * every country it has meals for. Roughly 85% return zero results, which makes
- * a dropdown built from it mostly dead options.
+ * `list.php?a=list` gives 195 — every country TheMealDB knows of, not every one
+ * it has meals for. About 85% come back empty, so a dropdown built from it is
+ * mostly dead options.
  *
- * Derived by scanning all 14 category endpoints (793 meals) and collecting the
- * distinct `strArea` values. Hardcoded because deriving it at runtime costs 14
- * requests per page load. Re-derive if the dataset grows.
+ * These came from scanning all 14 category endpoints (793 meals) and collecting
+ * the distinct areas. Hardcoded because doing that at runtime is 14 requests per
+ * page load. Worth re-deriving if the dataset grows.
  */
 export const AREAS: readonly string[] = [
 	'Algerian',
@@ -82,48 +76,43 @@ export const AREAS: readonly string[] = [
 ];
 
 /**
- * Categories hidden from the whole app.
+ * Categories hidden app-wide, not just removed from the filter dropdown — the
+ * default browse and any area filter would still surface them otherwise.
  *
- * Excluded everywhere, not just from the filter dropdown: the default browse and
- * any area filter would otherwise still surface them.
- *
- * Enforcing this by category name alone is not enough — `filter.php` returns
- * partial records with no `strCategory`, so an area-filtered result set carries
- * no category to test. Instead the ids belonging to each excluded category are
- * fetched once and subtracted from every result set, which is reliable
- * regardless of how the records were obtained.
+ * Filtering by category name isn't enough on its own, because `filter.php`
+ * returns partial records with no category to test. So we fetch the ids in each
+ * excluded category once and subtract them from every result set, which works
+ * however the records were obtained.
  */
 export const EXCLUDED_CATEGORIES: readonly string[] = ['Beef', 'Pork'];
 
 /**
- * Cached ids of excluded recipes.
- *
- * Module-level: the mapping is static, so the two extra requests happen once
- * per server process / page session rather than per navigation.
+ * Cached at module level, since the mapping never changes — the extra requests
+ * happen once per server process rather than on every navigation.
  */
 let excludedIdsCache: Promise<Set<string>> | null = null;
 
-/** Ids of every recipe in an excluded category. */
+/** Every recipe id sitting in an excluded category. */
 export function excludedIds(fetchFn: Fetch): Promise<Set<string>> {
 	excludedIdsCache ??= Promise.all(
 		EXCLUDED_CATEGORIES.map((category) => filterByCategory(fetchFn, category))
 	)
 		.then((lists) => new Set(lists.flat().map((r) => r.id)))
 		.catch(() => {
-			// A failed lookup must not blank the page. Reset so the next call retries
-			// rather than caching an empty set forever.
+			// A failed lookup shouldn't blank the page, and shouldn't cache an empty
+			// set forever either, so reset and let the next call retry.
 			excludedIdsCache = null;
 			return new Set<string>();
 		});
 	return excludedIdsCache;
 }
 
-/** True when a recipe belongs to an excluded category by name. */
+/** Whether a category is one of the hidden ones. */
 export function isExcludedCategory(category: string | undefined): boolean {
 	return !!category && EXCLUDED_CATEGORIES.includes(category);
 }
 
-/** Raised on a non-2xx response so load functions can map it to an error page. */
+/** Thrown on a non-2xx response, so load functions can turn it into an error page. */
 export class MealDbError extends Error {
 	constructor(
 		message: string,
@@ -139,7 +128,7 @@ async function getJson<T>(fetchFn: Fetch, path: string): Promise<T> {
 	try {
 		res = await fetchFn(`${BASE}${path}`);
 	} catch (cause) {
-		// Network failure, DNS, offline — no HTTP status to report.
+		// Offline, DNS failure, connection refused — there's no status to report.
 		throw new MealDbError(`Could not reach TheMealDB: ${(cause as Error).message}`, 503);
 	}
 	if (!res.ok) {
@@ -148,7 +137,7 @@ async function getJson<T>(fetchFn: Fetch, path: string): Promise<T> {
 	return (await res.json()) as T;
 }
 
-/** Search by name. Empty query returns TheMealDB's default set of 25. */
+/** Search by name. An empty query gives TheMealDB's default 25. */
 export async function searchByName(fetchFn: Fetch, query: string): Promise<Recipe[]> {
 	const data = await getJson<{ meals: RawMealFull[] | null }>(
 		fetchFn,
@@ -157,17 +146,17 @@ export async function searchByName(fetchFn: Fetch, query: string): Promise<Recip
 	return (data.meals ?? []).map(normalizeFull);
 }
 
-/** Filter by a single category. Results are partial records. */
+/** Filter by one category. Comes back as partial records. */
 export async function filterByCategory(fetchFn: Fetch, category: string): Promise<Recipe[]> {
 	const data = await getJson<{ meals: RawMealPartial[] | null }>(
 		fetchFn,
 		`/filter.php?c=${encodeURIComponent(category)}`
 	);
-	// filter.php omits strCategory, so carry the requested value through.
+	// filter.php drops strCategory, so pass the one we asked for straight through.
 	return (data.meals ?? []).map((m) => normalizePartial(m, { category }));
 }
 
-/** Filter by a single area. Results are partial records. */
+/** Filter by one area. Partial records again. */
 export async function filterByArea(fetchFn: Fetch, area: string): Promise<Recipe[]> {
 	const data = await getJson<{ meals: RawMealPartial[] | null }>(
 		fetchFn,
@@ -176,7 +165,7 @@ export async function filterByArea(fetchFn: Fetch, area: string): Promise<Recipe
 	return (data.meals ?? []).map((m) => normalizePartial(m, { area }));
 }
 
-/** Full detail lookup. Returns null when the id is unknown. */
+/** Full lookup by id. Null if there's no such recipe. */
 export async function lookupById(fetchFn: Fetch, id: string): Promise<Recipe | null> {
 	const data = await getJson<{ meals: RawMealFull[] | null }>(
 		fetchFn,
@@ -186,7 +175,7 @@ export async function lookupById(fetchFn: Fetch, id: string): Promise<Recipe | n
 	return meal ? normalizeFull(meal) : null;
 }
 
-/** The 14 categories. All of them have recipes, unlike the areas list. */
+/** The 14 categories — all of these have recipes, unlike the areas. */
 export async function listCategories(fetchFn: Fetch): Promise<string[]> {
 	const data = await getJson<{ meals: { strCategory: string }[] | null }>(
 		fetchFn,
@@ -199,14 +188,13 @@ export async function listCategories(fetchFn: Fetch): Promise<string[]> {
 }
 
 /**
- * Search and filter in one call, working around the API's one-filter limit.
+ * Search and filter together, around the API's one-filter-at-a-time limit.
  *
- * - **Query present:** use `search.php`, then narrow by category/area in memory.
- *   Full records carry both fields, so this is exact.
- * - **Both filters, no query:** two `filter.php` calls intersected by id. Needed
- *   because neither endpoint accepts both dimensions.
- * - **One filter, no query:** a single `filter.php` call.
- * - **Nothing:** the default 25 from an empty search.
+ * With a query we use `search.php` and narrow in memory — full records carry
+ * both category and area, so that's exact. With both filters and no query it
+ * takes two `filter.php` calls intersected by id, since no endpoint accepts
+ * both. One filter is a single call, and nothing at all falls back to the
+ * default 25.
  */
 export async function discover(
 	fetchFn: Fetch,
@@ -216,8 +204,8 @@ export async function discover(
 	const { category, area } = filters;
 	const trimmed = query.trim();
 
-	// An excluded category can never be an active filter, so short-circuit rather
-	// than fetching a set we would discard entirely.
+	// A hidden category can't be an active filter, so bail out instead of fetching
+	// a set we'd throw away.
 	if (isExcludedCategory(category)) return [];
 
 	const [results, blocked] = await Promise.all([
@@ -227,7 +215,7 @@ export async function discover(
 	return results.filter((r) => !blocked.has(r.id) && !isExcludedCategory(r.category));
 }
 
-/** The unfiltered fetch strategy. See {@link discover} for the exclusion pass. */
+/** Picks the right endpoints for the query and filters. {@link discover} handles exclusions. */
 async function discoverRaw(
 	fetchFn: Fetch,
 	trimmed: string,
@@ -248,8 +236,8 @@ async function discoverRaw(
 			filterByArea(fetchFn, area)
 		]);
 		const areaIds = new Set(byArea.map((r) => r.id));
-		// Keep the category-sourced records: they already carry `category`, and we
-		// add `area` since membership in the other set proves it.
+		// Prefer the category-sourced records — they already know their category, and
+		// being in the other set proves the area.
 		return byCategory.filter((r) => areaIds.has(r.id)).map((r) => ({ ...r, area }));
 	}
 
