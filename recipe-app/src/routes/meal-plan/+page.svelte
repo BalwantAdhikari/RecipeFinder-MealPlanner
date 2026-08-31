@@ -493,6 +493,9 @@
 		padding: var(--space-2);
 		font-size: var(--step--1);
 		font-weight: 500;
+		/* These tiles are <button>s, so without this they take the UA default
+		   `buttontext` — pure black on the brown tile. */
+		color: var(--cream);
 		cursor: grab;
 		background: var(--bg-soft);
 		border: 1px solid var(--border);
