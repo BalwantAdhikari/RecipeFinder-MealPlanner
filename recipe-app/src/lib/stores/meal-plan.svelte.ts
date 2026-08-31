@@ -1,18 +1,16 @@
 /**
- * The weekly meal plan.
+ * The weekly meal plan, stored as a flat list rather than a nested
+ * `{ day: { slot: meal } }` map — flat is easier to persist, filter and diff,
+ * and `forDay()` builds the per-column view the component wants.
  *
- * Shape is a flat list of entries rather than a nested `{ day: { slot: meal } }`
- * map. Flat is easier to persist, filter and diff, and `forDay()` derives the
- * per-column view the `meal-plan-day` component wants.
- *
- * Each (day, slot) pair holds at most one recipe, so assigning to an occupied
- * slot replaces rather than appends.
+ * A day and slot hold one recipe at most, so assigning over a full slot
+ * replaces what was there.
  */
 
 import type { MealSlot, PlannedMeal, Recipe } from 'recipe-ui-components';
 import { load, save, remove, keys } from './persist';
 
-/** Monday-first, matching how a week is planned rather than JS day numbering. */
+/** Monday first — that's how people plan a week, whatever JS thinks. */
 export const DAYS = [
 	'Monday',
 	'Tuesday',
@@ -27,17 +25,16 @@ export type Day = (typeof DAYS)[number];
 
 export const SLOTS: readonly MealSlot[] = ['breakfast', 'lunch', 'dinner'];
 
-/** A planned meal plus the day it belongs to. */
+/** A planned meal, plus which day it's on. */
 export interface PlanEntry extends PlannedMeal {
 	day: Day;
 }
 
-/** Today's name in the same vocabulary as DAYS, for highlighting the column. */
+/** Today's name in the same terms as DAYS, so the column can be highlighted. */
 export function today(): Day {
-	// getDay() is 0=Sunday; DAYS is Monday-first.
-	// A transient read, not reactive state: SvelteDate would add a proxy around a
-	// value discarded on the next line, and the highlighted column does not need
-	// to re-render at midnight.
+	// getDay() counts from Sunday, DAYS from Monday.
+	// Plain Date, not SvelteDate: this is read once and thrown away, and the
+	// highlight doesn't need to move by itself at midnight.
 	// eslint-disable-next-line svelte/prefer-svelte-reactivity
 	const index = (new Date().getDay() + 6) % 7;
 	return DAYS[index];
@@ -55,10 +52,9 @@ class MealPlanStore {
 	}
 
 	/**
-	 * Entries for one day, as `meal-plan-day` expects.
-	 *
-	 * Returns a fresh array every call — Stencil compares props by reference, so
-	 * handing back a cached array would suppress re-renders.
+	 * One day's entries, shaped for `meal-plan-day`. Builds a new array each call
+	 * on purpose: Stencil compares props by reference, so a cached one would stop
+	 * the component re-rendering.
 	 */
 	forDay(day: Day): PlannedMeal[] {
 		return this.#entries
@@ -66,17 +62,17 @@ class MealPlanStore {
 			.map(({ slot, recipeId, title, image }) => ({ slot, recipeId, title, image }));
 	}
 
-	/** How many of the three slots are filled, for a per-day summary. */
+	/** How many of the three slots are taken, for the day's summary line. */
 	filledCount(day: Day): number {
 		return this.#entries.filter((e) => e.day === day).length;
 	}
 
 	/**
-	 * Assign a recipe to a slot, replacing whatever was there.
+	 * Puts a recipe in a slot, replacing anything already there.
 	 *
-	 * Denormalises `title` and `image` deliberately: the planner must render
-	 * without a network round trip per cell, and a stale title on a
-	 * user-edited recipe is a better outcome than 21 lookups on page load.
+	 * `title` and `image` are copied in rather than looked up, so the planner can
+	 * render without a request per cell. A stale title after someone edits their
+	 * own recipe beats 21 lookups on every page load.
 	 */
 	assign(day: Day, slot: MealSlot, recipe: Pick<Recipe, 'id' | 'title' | 'image'>): void {
 		const entry: PlanEntry = {
@@ -90,7 +86,7 @@ class MealPlanStore {
 		save(keys.mealPlan, this.#entries);
 	}
 
-	/** Clear one slot. Returns whether anything was removed. */
+	/** Empties one slot, and says whether there was anything in it. */
 	unassign(day: Day, slot: MealSlot): boolean {
 		const before = this.#entries.length;
 		this.#entries = this.#entries.filter((e) => !(e.day === day && e.slot === slot));
@@ -99,14 +95,14 @@ class MealPlanStore {
 		return removed;
 	}
 
-	/** Drop every reference to a recipe — used when a user recipe is deleted. */
+	/** Forgets a recipe everywhere. Called when someone deletes one of their own. */
 	removeRecipe(recipeId: string): void {
 		const before = this.#entries.length;
 		this.#entries = this.#entries.filter((e) => e.recipeId !== recipeId);
 		if (this.#entries.length !== before) save(keys.mealPlan, this.#entries);
 	}
 
-	/** Keep denormalised copies in step after a user recipe is edited. */
+	/** Refreshes the copied title and image after an edit. */
 	syncRecipe(recipe: Pick<Recipe, 'id' | 'title' | 'image'>): void {
 		let changed = false;
 		this.#entries = this.#entries.map((e) => {

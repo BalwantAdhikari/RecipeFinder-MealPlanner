@@ -1,14 +1,12 @@
 /**
- * Recipe form validation.
- *
- * Pure functions over a draft object, deliberately independent of Svelte so the
- * rules can be unit-tested without a component harness. The form maps the
- * returned errors onto fields.
+ * Validation for the recipe form. Plain functions over a draft object, with no
+ * Svelte in sight, so the rules can be tested without mounting anything. The
+ * form maps the errors it gets back onto the right fields.
  */
 
 import type { RecipeIngredient } from 'recipe-ui-components';
 
-/** What the form edits. Ingredient/instruction rows may be blank while typing. */
+/** What the form edits. Rows can be blank while someone's still typing. */
 export interface RecipeDraft {
 	title: string;
 	category: string;
@@ -29,7 +27,7 @@ export const LIMITS = {
 } as const;
 
 export function emptyDraft(): RecipeDraft {
-	// One blank row each, so the form opens with something to type into.
+	// A blank row of each, so the form opens with somewhere to type.
 	return {
 		title: '',
 		category: '',
@@ -41,7 +39,7 @@ export function emptyDraft(): RecipeDraft {
 	};
 }
 
-/** Rows the user actually filled in — blank rows are ignored, not errors. */
+/** Only the rows someone actually filled in. Blank ones are ignored, not errors. */
 export function filledIngredients(rows: RecipeIngredient[]): RecipeIngredient[] {
 	return rows
 		.map((r) => ({ name: r.name.trim(), measure: r.measure?.trim() }))
@@ -54,12 +52,9 @@ export function filledInstructions(steps: string[]): string[] {
 }
 
 /**
- * Is this a usable image URL?
- *
- * Accepts http(s) only. Rejects other schemes rather than trusting them: a
- * `javascript:` URL in an `src` is an XSS vector, and `data:` URLs would bloat
- * localStorage. An empty value is valid — the image is optional and the card
- * falls back to a placeholder.
+ * http(s) only. Other schemes are rejected rather than trusted — `javascript:`
+ * in an `src` is an XSS vector and `data:` URLs would bloat localStorage. Empty
+ * is fine, since the image is optional and the card has a placeholder.
  */
 export function isValidImageUrl(value: string): boolean {
 	const trimmed = value.trim();
@@ -74,12 +69,7 @@ export function isValidImageUrl(value: string): boolean {
 	return url.protocol === 'http:' || url.protocol === 'https:';
 }
 
-/**
- * Validate a draft.
- *
- * Returns one message per invalid field. An empty object means the draft can be
- * saved.
- */
+/** One message per bad field. An empty object means it's good to save. */
 export function validateDraft(draft: RecipeDraft): FieldErrors {
 	const errors: FieldErrors = {};
 
@@ -120,7 +110,7 @@ export function isValid(errors: FieldErrors): boolean {
 	return Object.keys(errors).length === 0;
 }
 
-/** Normalise a valid draft into the shape the store persists. */
+/** Turns a valid draft into the shape the store keeps. */
 export function draftToRecipe(draft: RecipeDraft) {
 	const tags = draft.tags
 		.split(',')
@@ -138,7 +128,7 @@ export function draftToRecipe(draft: RecipeDraft) {
 	};
 }
 
-/** Inverse of {@link draftToRecipe}, for populating the edit form. */
+/** The other direction, for filling in the edit form. */
 export function recipeToDraft(recipe: {
 	title: string;
 	category?: string;
