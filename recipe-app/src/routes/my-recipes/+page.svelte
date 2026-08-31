@@ -2,6 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { on, setProps } from '$lib/components/stencil';
+	import { categoryColor } from '$lib/components/category-icons';
 	import { userRecipes, mealPlan, favorites } from '$lib/stores';
 	import type { UserRecipe } from '$lib/stores';
 
@@ -60,6 +61,7 @@
 		<div class="card-grid">
 			{#each userRecipes.all as recipe (recipe.id)}
 				<recipe-card
+					style="--recipe-card-category-color: {categoryColor(recipe.category)}"
 					use:setProps={{ recipe, isFavorite: favorites.has(recipe.id) }}
 					use:on={{
 						favoriteToggle: (e) => favorites.set(e.detail.recipeId, e.detail.isFavorite),

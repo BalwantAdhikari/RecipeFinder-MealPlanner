@@ -267,6 +267,7 @@
 		<div class="card-grid">
 			{#each results as recipe (recipe.id)}
 				<recipe-card
+					style="--recipe-card-category-color: {categoryColor(recipe.category)}"
 					use:setProps={{ recipe, isFavorite: favorites.has(recipe.id) }}
 					use:on={{
 						favoriteToggle: (e) => favorites.set(e.detail.recipeId, e.detail.isFavorite),

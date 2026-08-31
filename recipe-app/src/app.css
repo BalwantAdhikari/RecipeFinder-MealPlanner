@@ -458,9 +458,11 @@ recipe-rating {
 	--recipe-card-border: var(--border);
 	--recipe-card-text: var(--text);
 	--recipe-card-muted: var(--muted);
-	--recipe-card-chip-text: var(--muted-strong);
-	--recipe-card-chip-bg: var(--surface-2);
 	--recipe-card-accent: var(--accent);
+	/* Fallback only. Each card sets this inline to its own category colour, so
+	   the value lives in category-icons.ts rather than being duplicated here as
+	   12 static rules. */
+	--recipe-card-category-color: var(--accent);
 	--recipe-card-radius: var(--radius-lg);
 	--recipe-card-shadow: var(--shadow-1);
 	--recipe-card-media-bg: var(--surface-2);

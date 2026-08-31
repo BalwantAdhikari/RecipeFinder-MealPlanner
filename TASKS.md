@@ -470,7 +470,7 @@ for the end.
 
 ---
 
-## Phase 8 — "Tasteful" light redesign (planned)
+## Phase 8 — "Tasteful" light redesign
 
 Adopting a light editorial template: white/cream page, orange accent, bold sans headings, split
 hero, category pill row, and a denser recipe card.
@@ -530,6 +530,56 @@ Breaking layout change, hence the minor bump.
    Decide whether the cuisine select stays alongside it.
 4. **Nav** — centred links with an active underline.
 5. **Cards** — consume `0.2.0`, set per-category label colours.
+
+### Outcome
+
+Done: tokens and typography (8.1), split hero (8.2), category pills (8.3), nav active underline
+(8.4), card restructure via `0.2.0` (8.5).
+
+**Cuisine stayed a select.** 37 areas is too many to lay out as pills, and the pill row is already
+scrolling with 13 entries. The component drops a select whose option list is empty, so passing
+`categories: []` removes the category select without a library change.
+
+**Category colours live in one place.** `src/lib/components/category-icons.ts` holds an icon and a
+colour per category; each card sets `--recipe-card-category-color` inline from it. Twelve static CSS
+rules would have duplicated the same data and drifted from the pills. The categories come from the
+API, so both maps fall back — a neutral dot and a grey — rather than assuming a fixed design list.
+
+**Pills are links, not buttons.** The filter is already URL state, so real hrefs give middle-click,
+open-in-new-tab and copy-link for free. `svelte/no-navigation-without-resolve` cannot follow
+`resolve()` through the `buildUrl()` helper, so the rule is disabled for that row only.
+
+### Gotchas found
+
+**A card-wide click overlay swallows everything under it.** Making the whole card clickable via
+`.title__btn::after { position: absolute; inset: 0 }` put the overlay above the favourite button,
+which is `position: absolute; z-index: auto`. The favourite became dead to the mouse. Both the
+favourite and the footer now sit at `z-index: 2`.
+
+The library test for this passed while the bug was live, because `element.click()` dispatches an
+event directly and never consults hit-testing. Playwright caught it only because it refuses to click
+an intercepted element. Any test asserting "this stays clickable" has to check
+`elementFromPoint`, and inside the shadow root — `document.elementFromPoint` stops at the host and
+returns `<recipe-card>` for every point on the card, so an assertion like
+`root.contains(hit)` can never fail.
+
+Both overlay tests were then verified by mutation: removing the overlay fails the card hit-test,
+removing the footer's `z-index` fails the actions test, and removing the favourite's `z-index` fails
+the favourite test. Each failed only its own test.
+
+**`--border` is invisible on `--surface`.** The pills sit on the white toolbar and their own white
+fill gives no edge, leaving the border to do all the work — `--border` measures 1.24:1 there. Same
+class of bug as the form inputs in the commit before; both now use `--border-strong` (3.11:1).
+
+**Whole-card navigation and per-card scroll.** `page.mouse.click()` takes viewport coordinates and
+does not scroll, so a card below the fold gets clicked at whatever occupies those coordinates
+instead. Two failing assertions were the test's fault, not the product's.
+
+### Deliberately not done
+
+**No rating shown.** `0.2.0` adds a `rating` slot and the app leaves it empty. TheMealDB has no
+rating field, so filling it would mean inventing data. The slot exists so the component is useful
+to a consumer who has it.
 
 ### Verification (same bar as before)
 
