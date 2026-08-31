@@ -136,7 +136,7 @@
 		padding: var(--space-3) var(--space-4);
 		margin-bottom: var(--space-4);
 		font-size: var(--step--1);
-		background: var(--bg-soft);
+		background: var(--surface-2);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
 	}
@@ -144,7 +144,7 @@
 	.link-btn {
 		padding: 0;
 		font: inherit;
-		color: var(--cream);
+		color: var(--text);
 		text-decoration: underline;
 		cursor: pointer;
 		background: none;

@@ -362,7 +362,7 @@
 	.day-summary {
 		font-size: 0.6875rem;
 		font-weight: 500;
-		color: var(--ink-muted);
+		color: var(--muted);
 	}
 
 	.picker {
@@ -373,7 +373,7 @@
 		gap: var(--space-3);
 		margin-bottom: var(--space-5);
 		padding: var(--space-4);
-		background: var(--bg-soft);
+		background: var(--surface-2);
 		border: 1px solid var(--accent);
 		border-radius: var(--radius-lg);
 		box-shadow: var(--shadow-3);
@@ -391,7 +391,7 @@
 		padding: 0.5rem 0.6875rem;
 		font: inherit;
 		font-size: var(--step-0);
-		color: var(--cream);
+		color: var(--text);
 		background: var(--bg);
 		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-sm);
@@ -415,7 +415,7 @@
 		padding: var(--space-2);
 		font: inherit;
 		font-size: var(--step-0);
-		color: var(--cream);
+		color: var(--text);
 		text-align: left;
 		cursor: pointer;
 		background: transparent;
@@ -427,7 +427,7 @@
 	}
 
 	.candidates button:hover {
-		background: var(--bg-soft);
+		background: var(--surface-2);
 		border-color: var(--border);
 	}
 
@@ -443,7 +443,7 @@
 	.thumb-placeholder {
 		display: grid;
 		place-items: center;
-		background: var(--bg-soft);
+		background: var(--surface-2);
 	}
 
 	.cand-title {
@@ -499,10 +499,10 @@
 		font: inherit;
 		font-size: var(--step--1);
 		font-weight: 500;
-		color: var(--cream);
+		color: var(--text);
 		text-align: left;
 		cursor: grab;
-		background: var(--bg-soft);
+		background: var(--surface-2);
 		border: 1px solid var(--border);
 		border-radius: var(--radius);
 		box-shadow: var(--shadow-1);
@@ -536,6 +536,6 @@
 
 	.muted {
 		font-size: var(--step-0);
-		color: var(--cream-muted);
+		color: var(--muted);
 	}
 </style>

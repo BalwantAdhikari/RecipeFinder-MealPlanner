@@ -177,7 +177,8 @@
 		padding: 0.1875rem 0.625rem;
 		font-size: var(--step--1);
 		font-weight: 500;
-		color: var(--ink-muted);
+		/* On --surface-2, where --muted is only 4.39:1. */
+		color: var(--muted-strong);
 		background: var(--surface-2);
 		border-radius: var(--radius-full);
 	}
@@ -190,7 +191,7 @@
 	.tags {
 		margin-bottom: var(--space-4);
 		font-size: var(--step--1);
-		color: var(--ink-muted);
+		color: var(--muted);
 	}
 
 	.actions {
@@ -203,7 +204,7 @@
 	/* Active state is a tint on the same pill, not a different size or shape, so
 	   the action row stays even. */
 	.actions .active {
-		color: var(--accent-deep);
+		color: var(--accent-hover);
 		border-color: var(--accent);
 	}
 
@@ -251,7 +252,7 @@
 		flex-shrink: 0;
 		font-size: var(--step--1);
 		font-variant-numeric: tabular-nums;
-		color: var(--ink-muted);
+		color: var(--muted);
 	}
 
 	.steps {
@@ -281,13 +282,13 @@
 		height: 1.5rem;
 		font-size: var(--step--1);
 		font-weight: 600;
-		color: var(--accent-deep);
+		color: var(--accent-hover);
 		background: var(--surface-2);
 		border-radius: var(--radius-full);
 	}
 
 	.muted {
-		color: var(--ink-muted);
+		color: var(--muted);
 	}
 
 	.error {

@@ -69,17 +69,28 @@
 </svelte:head>
 
 <section class="hero">
-	{#if heroImage}
-		<img class="hero__img" src={heroImage} alt="" aria-hidden="true" />
-	{/if}
-	<div class="hero__scrim"></div>
-
 	<div class="hero__inner">
-		<h1>Healthy Food Recipes</h1>
+		<p class="eyebrow">Welcome to Smart Rasoi</p>
+		<h1>Delicious recipes, made for you</h1>
 		<p class="lede">
-			Browse a world of recipes, keep the ones you love, and plan your week — all in one place.
+			Discover easy, healthy and mouthwatering recipes for every moment of your day.
 		</p>
-		<a class="btn btn--primary" href="#gallery">Browse Recipes</a>
+
+		<div class="hero__search">
+			<recipe-search-bar
+				use:setProps={{ value: data.query, placeholder: 'Search recipes, ingredients…' }}
+				use:on={{
+					searchChange: (e) => navigate({ q: e.detail.query }),
+					searchClear: () => navigate({ q: '' })
+				}}
+			></recipe-search-bar>
+		</div>
+	</div>
+
+	<div class="hero__media">
+		{#if heroImage}
+			<img class="hero__img" src={heroImage} alt="" aria-hidden="true" />
+		{/if}
 	</div>
 </section>
 
@@ -168,14 +179,6 @@
 	</div>
 
 	<div class="toolbar">
-		<recipe-search-bar
-			use:setProps={{ value: data.query, placeholder: 'Search recipes by name…' }}
-			use:on={{
-				searchChange: (e) => navigate({ q: e.detail.query }),
-				searchClear: () => navigate({ q: '' })
-			}}
-		></recipe-search-bar>
-
 		<recipe-filter-panel
 			use:setProps={{ categories: data.categories, areas: data.areas, selected: data.filters }}
 			use:on={{
@@ -239,7 +242,7 @@
 		gap: var(--space-3);
 		padding: var(--space-3);
 		margin-bottom: var(--space-5);
-		background: var(--bg-soft);
+		background: var(--surface);
 		border: 1px solid var(--border);
 		border-radius: var(--radius-lg);
 		box-shadow: var(--shadow-1);
@@ -248,11 +251,11 @@
 	.summary {
 		margin-bottom: var(--space-4);
 		font-size: var(--step--1);
-		color: var(--cream-muted);
+		color: var(--muted);
 	}
 
 	.summary strong {
-		color: var(--cream);
+		color: var(--text);
 	}
 
 	.error {

@@ -282,11 +282,11 @@
 		font-size: var(--step--1);
 		font-weight: 600;
 		letter-spacing: 0.01em;
-		color: var(--ink-muted);
+		color: var(--muted);
 	}
 
 	.req {
-		color: var(--accent-deep);
+		color: var(--accent-hover);
 	}
 
 	input,
@@ -296,7 +296,7 @@
 		padding: 0.5625rem 0.6875rem;
 		font: inherit;
 		font-size: var(--step-0);
-		color: var(--ink);
+		color: var(--text);
 		background: #fff;
 		border: 1px solid var(--border-cream);
 		border-radius: var(--radius-sm);
@@ -376,7 +376,7 @@
 		margin-top: 0.4375rem;
 		font-size: var(--step--1);
 		font-weight: 600;
-		color: var(--accent-deep);
+		color: var(--accent-hover);
 		background: var(--surface-2);
 		border-radius: var(--radius-full);
 	}
@@ -394,7 +394,7 @@
 		place-items: center;
 		font: inherit;
 		font-size: var(--step--1);
-		color: var(--ink-muted);
+		color: var(--muted);
 		cursor: pointer;
 		background: #fff;
 		border: 1px solid var(--border-cream);
@@ -405,7 +405,7 @@
 	}
 
 	.icon:hover:not(:disabled) {
-		color: var(--accent-deep);
+		color: var(--accent-hover);
 		border-color: var(--accent);
 	}
 

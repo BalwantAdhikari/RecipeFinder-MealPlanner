@@ -82,6 +82,6 @@
 	}
 
 	.crumbs a {
-		color: var(--cream-muted);
+		color: var(--muted);
 	}
 </style>

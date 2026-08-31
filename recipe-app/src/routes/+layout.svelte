@@ -46,7 +46,7 @@
 					height="32"
 					decoding="async"
 				/>
-				<span class="brand-text">Smart Rasoi</span>
+				<span class="brand-text wordmark">Smart Rasoi</span>
 			</a>
 
 			<nav aria-label="Main">
@@ -117,7 +117,7 @@
 		position: sticky;
 		top: 0;
 		z-index: 20;
-		background: color-mix(in srgb, var(--bg-deep) 88%, transparent);
+		background: color-mix(in srgb, var(--surface) 88%, transparent);
 		backdrop-filter: saturate(1.4) blur(12px);
 		border-bottom: 1px solid var(--border);
 	}
@@ -137,7 +137,7 @@
 		display: inline-flex;
 		align-items: center;
 		gap: var(--space-2);
-		color: var(--cream);
+		color: var(--text);
 		text-decoration: none;
 	}
 
@@ -153,9 +153,7 @@
 
 	/* The wordmark carries the script face, the nav stays sans for legibility. */
 	.brand-text {
-		font-family: var(--font-display);
 		font-size: var(--step-2);
-		letter-spacing: 0.01em;
 	}
 
 	nav ul {
@@ -172,7 +170,7 @@
 		padding: 0.4375rem 0.875rem;
 		font-size: var(--step-0);
 		font-weight: 500;
-		color: var(--cream-muted);
+		color: var(--muted);
 		text-decoration: none;
 		border-radius: var(--radius-full);
 		transition:
@@ -181,13 +179,17 @@
 	}
 
 	nav a:hover {
-		color: var(--cream);
-		background: var(--bg-soft);
+		color: var(--text);
+		background: var(--surface-2);
 	}
 
+	/* Active link: orange text with an underline, as the template draws it. A
+	   filled pill was what the token rename accidentally turned into dark-on-dark. */
 	nav a[aria-current='page'] {
-		color: var(--ink);
-		background: var(--cream);
+		color: var(--accent);
+		background: transparent;
+		border-radius: 0;
+		box-shadow: inset 0 -2px 0 var(--accent);
 	}
 
 	.main {
@@ -197,7 +199,7 @@
 
 	.footer {
 		margin-top: var(--space-8);
-		background: var(--bg-deep);
+		background: var(--surface);
 		border-top: 1px solid var(--border);
 	}
 
@@ -208,7 +210,7 @@
 		margin: 0 auto;
 		padding: var(--space-6) var(--space-5);
 		font-size: var(--step--1);
-		color: var(--cream-muted);
+		color: var(--muted);
 	}
 
 	@media (min-width: 720px) {
@@ -220,9 +222,11 @@
 
 	.footer-title {
 		margin-bottom: var(--space-3);
-		font-family: var(--font-display);
-		font-size: var(--step-1);
-		color: var(--cream);
+		font-size: var(--step-0);
+		font-weight: 700;
+		letter-spacing: 0.02em;
+		text-transform: uppercase;
+		color: var(--text);
 	}
 
 	.footer-col ul {
@@ -234,12 +238,12 @@
 	}
 
 	.footer-col a {
-		color: var(--cream-muted);
+		color: var(--muted);
 		text-decoration: none;
 	}
 
 	.footer-col a:hover {
-		color: var(--cream);
+		color: var(--text);
 		text-decoration: underline;
 	}
 
