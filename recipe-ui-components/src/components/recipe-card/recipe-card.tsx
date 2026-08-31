@@ -1,19 +1,30 @@
-import { Component, Prop, Event, EventEmitter, h, Host } from '@stencil/core';
+import { Component, Prop, State, Element, Event, EventEmitter, h, Host } from '@stencil/core';
 import { parseObjectProp } from '../../utils/utils';
 import type { Recipe } from '../../types/recipe';
 
 /**
- * A single recipe tile: image, title, category/area meta, and a favorite toggle.
+ * A single recipe tile: image, title, a category/area meta row, and a favorite
+ * toggle.
  *
- * @slot actions - Extra controls rendered in the card footer, beside the
- * "View recipe" button. Use for consumer-specific actions such as
- * "Add to meal plan".
+ * The whole card is the navigation target. Rather than putting a click handler
+ * on the `article` — which is invisible to keyboards and screen readers — the
+ * title is a real button and an absolutely positioned overlay extends its hit
+ * area over the card. The favorite toggle and anything slotted into `actions`
+ * sit above that overlay, so they stay independently clickable.
+ *
+ * @slot actions - Controls rendered in the card footer, e.g. "Add to meal
+ * plan". The footer is omitted entirely when nothing is slotted in, so a card
+ * with no consumer actions has no empty strip at the bottom.
  * @slot badge - Overlaid on the top-left of the image. Use for a source or
  * dietary badge.
+ * @slot rating - Rendered at the right of the meta row, opposite the category.
+ * Intended for `<recipe-rating>` or a review count. This library's data source
+ * has no rating field, so the slot is the only way to show one.
  *
  * @part card - The outer card container.
  * @part image - The recipe image.
  * @part title - The recipe title heading.
+ * @part category - The category label in the meta row.
  * @part favorite - The favorite toggle button.
  */
 @Component({
@@ -22,6 +33,8 @@ import type { Recipe } from '../../types/recipe';
   shadow: true,
 })
 export class RecipeCard {
+  @Element() host!: HTMLElement;
+
   /**
    * The recipe to display. Accepts either an object (set as a DOM property) or
    * a JSON string (set as an attribute), so it works from any framework.
@@ -31,7 +44,7 @@ export class RecipeCard {
   /** Whether this recipe is currently in the user's favorites. */
   @Prop() isFavorite: boolean = false;
 
-  /** Renders a denser card with the description and meta row hidden. */
+  /** Renders a denser card with the meta row hidden. */
   @Prop() compact: boolean = false;
 
   /**
@@ -43,11 +56,31 @@ export class RecipeCard {
   /** Emitted when the user asks to open the full recipe. */
   @Event() viewDetails!: EventEmitter<{ recipeId: string }>;
 
+  /**
+   * Whether anything is slotted into `actions`, which decides if the footer
+   * renders at all.
+   *
+   * Seeded from the light DOM before first paint so the footer is correct on
+   * the initial render, then kept current by `slotchange` for consumers that
+   * add or remove actions later.
+   */
+  @State() private hasActions: boolean = false;
+
+  componentWillLoad() {
+    this.hasActions = this.actionsSlotFilled();
+  }
+
+  private actionsSlotFilled(): boolean {
+    return !!this.host.querySelector('[slot="actions"]');
+  }
+
   private get parsed(): Recipe | undefined {
     return parseObjectProp<Recipe>(this.recipe);
   }
 
   private handleFavorite = (event: MouseEvent) => {
+    // The favorite button sits inside the card's click overlay region. Stopping
+    // propagation keeps "favorite" from also reading as "open the recipe".
     event.stopPropagation();
     const recipe = this.parsed;
     if (!recipe) {
@@ -76,8 +109,6 @@ export class RecipeCard {
         </Host>
       );
     }
-
-    const meta = [recipe.category, recipe.area].filter(Boolean);
 
     return (
       <Host>
@@ -122,23 +153,44 @@ export class RecipeCard {
 
           <div class="body">
             <h3 class="title" part="title">
-              {recipe.title}
+              {/*
+                A button, not a handler on the article: this is the one focusable
+                navigation target for the card, and `.title__btn::after` stretches
+                its hit area to the card's edges.
+              */}
+              <button type="button" class="title__btn" onClick={this.handleView}>
+                {recipe.title}
+              </button>
             </h3>
 
-            {!this.compact && meta.length > 0 && (
-              <p class="meta">
-                {meta.map(item => (
-                  <span class="chip">{item}</span>
-                ))}
-              </p>
+            {!this.compact && (
+              <div class="meta">
+                {recipe.category && (
+                  <span class="category" part="category">
+                    {recipe.category}
+                  </span>
+                )}
+                {recipe.area && <span class="area">{recipe.area}</span>}
+                <span class="rating">
+                  <slot name="rating" />
+                </span>
+              </div>
             )}
           </div>
 
-          <footer class="footer">
-            <button type="button" class="primary" onClick={this.handleView}>
-              View recipe
-            </button>
-            <slot name="actions" />
+          {/*
+            Rendered only when the consumer slots something in, so a card without
+            actions has no empty footer strip. `slotchange` covers actions added
+            after first render; the initial value is read from the light DOM in
+            componentWillLoad, because slotchange has not fired yet at that point.
+          */}
+          <footer class="footer" hidden={!this.hasActions}>
+            <slot
+              name="actions"
+              onSlotchange={() => {
+                this.hasActions = this.actionsSlotFilled();
+              }}
+            />
           </footer>
         </article>
       </Host>

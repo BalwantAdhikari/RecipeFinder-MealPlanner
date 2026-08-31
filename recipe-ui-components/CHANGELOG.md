@@ -3,6 +3,47 @@
 All notable changes to `recipe-ui-components`.
 This project follows [semantic versioning](https://semver.org/).
 
+## 0.2.0
+
+A layout change to `recipe-card` that consumers will see, hence the minor bump rather than a
+patch.
+
+### Changed
+
+- **The whole card is now the navigation target.** The "View recipe" button is gone. The title
+  is a real `<button>` whose hit area is stretched over the card by an absolutely positioned
+  `::after`, so the card is clickable anywhere while keeping one focusable, screen-reader
+  announced target. A `click` handler on the `<article>` would have been simpler and
+  unreachable by keyboard.
+
+  Anything you position absolutely inside the card now needs `z-index: 2` or higher, or the
+  overlay will swallow its clicks. The favourite toggle and the `actions` slot already do.
+
+- **The meta row replaces the two chips.** Category and area were interchangeable grey pills;
+  the category is now a coloured uppercase label and the area quieter text beside it. Consumers
+  styling `.chip` from outside had nothing to target anyway — it was never an exposed part — but
+  `--recipe-card-chip-bg` and `--recipe-card-chip-text` are **removed**. Use
+  `--recipe-card-category-color` and `--recipe-card-muted`.
+
+- **The footer is omitted when the `actions` slot is empty**, instead of rendering an empty
+  strip. Actions added after first render are picked up via `slotchange`.
+
+### Added
+
+- **`rating` slot**, at the right of the meta row. This library's data source has no rating
+  field, so nothing renders by default — the slot exists so a consumer with real rating data
+  can supply it, e.g. `<recipe-rating slot="rating" value={4.5} readonly>`.
+- **`category` part**, for styling the label directly.
+- **`--recipe-card-category-color`**, meant to be set per category. Kept separate from
+  `--recipe-card-accent` so recolouring categories cannot move the focus ring with it. The dark
+  scheme ships a lighter orange because the light default is only 3.42:1 on the dark surface.
+
+### Migration
+
+Consumers who relied on the built-in "View recipe" button should note it no longer exists;
+`viewDetails` now fires from the card itself. Anyone theming the chip tokens should switch to
+the two named above.
+
 ## 0.1.4
 
 ### Fixed

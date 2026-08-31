@@ -11,13 +11,23 @@ const RECIPE: Recipe = {
 };
 
 describe('recipe-card', () => {
-  it('renders the title and meta chips from an object prop', async () => {
+  it('renders the title and the category/area meta row from an object prop', async () => {
     const { root } = await render(<recipe-card recipe={RECIPE} />);
     const shadow = root.shadowRoot!;
 
     expect(shadow.querySelector('[part="title"]')!.textContent).toBe(RECIPE.title);
-    const chips = Array.from(shadow.querySelectorAll('.chip')).map(c => c.textContent);
-    expect(chips).toEqual(['Chicken', 'Japanese']);
+    expect(shadow.querySelector('[part="category"]')!.textContent).toBe('Chicken');
+    expect(shadow.querySelector('.area')!.textContent).toBe('Japanese');
+  });
+
+  it('omits the category and area when the recipe has neither', async () => {
+    const { root } = await render(<recipe-card recipe={{ ...RECIPE, category: '', area: '' }} />);
+    const shadow = root.shadowRoot!;
+
+    expect(shadow.querySelector('[part="category"]')).toBeNull();
+    expect(shadow.querySelector('.area')).toBeNull();
+    // The row itself stays, since the rating slot may still be filled.
+    expect(shadow.querySelector('.meta')).toBeTruthy();
   });
 
   it('accepts the recipe as a JSON string', async () => {
@@ -105,20 +115,82 @@ describe('recipe-card', () => {
     expect(root.shadowRoot!.querySelector('[part="favorite"]')).toBeTruthy();
   });
 
-  it('emits viewDetails with the recipe id', async () => {
+  it('emits viewDetails when the title is activated', async () => {
     const { root, spyOnEvent } = await render(<recipe-card recipe={RECIPE} />);
     const spy = spyOnEvent('viewDetails');
 
-    (root.shadowRoot!.querySelector('.primary') as HTMLButtonElement).click();
+    (root.shadowRoot!.querySelector('.title__btn') as HTMLButtonElement).click();
 
     expect(spy.lastEvent!.detail).toEqual({ recipeId: RECIPE.id });
+  });
+
+  it('makes the card the click target via a real focusable button', async () => {
+    const { root } = await render(<recipe-card recipe={RECIPE} />);
+    const shadow = root.shadowRoot!;
+    const trigger = shadow.querySelector('.title__btn') as HTMLButtonElement;
+
+    // A handler on the <article> would pass a click test but be unreachable by
+    // keyboard, so assert the semantics rather than just the behaviour.
+    expect(trigger.tagName).toBe('BUTTON');
+    expect(trigger.textContent).toBe(RECIPE.title);
+
+    trigger.focus();
+    expect(shadow.activeElement).toBe(trigger);
+  });
+
+  it("covers the whole card with the title's hit area", async () => {
+    const { root } = await render(<recipe-card recipe={RECIPE} />);
+    const shadow = root.shadowRoot!;
+    const card = shadow.querySelector('[part="card"]') as HTMLElement;
+    const trigger = shadow.querySelector('.title__btn') as HTMLElement;
+    const box = card.getBoundingClientRect();
+    expect(box.width).toBeGreaterThan(0);
+
+    // Probe *inside* the shadow root. document.elementFromPoint stops at the
+    // host, so it would return <recipe-card> for any point on the card and this
+    // assertion could never fail.
+    const corners = [
+      [box.left + 6, box.top + 6],
+      [box.right - 6, box.top + 6],
+      [box.left + 6, box.bottom - 6],
+      [box.right - 6, box.bottom - 6],
+    ] as const;
+
+    for (const [x, y] of corners) {
+      expect(shadow.elementFromPoint(x, y)).toBe(trigger);
+    }
+  });
+
+  it('clicking favorite does not also fire viewDetails', async () => {
+    const { root, spyOnEvent } = await render(<recipe-card recipe={RECIPE} />);
+    const view = spyOnEvent('viewDetails');
+    const fav = spyOnEvent('favoriteToggle');
+    const shadow = root.shadowRoot!;
+    const button = shadow.querySelector('[part="favorite"]') as HTMLButtonElement;
+
+    // The card-wide overlay paints over the favorite unless it is lifted above
+    // it. A dispatched click() ignores hit-testing and would pass either way, so
+    // assert that the favorite is genuinely the topmost element at its own
+    // coordinates before clicking it.
+    const box = button.getBoundingClientRect();
+    expect(box.width).toBeGreaterThan(0);
+    const topmost = shadow.elementFromPoint(box.left + box.width / 2, box.top + box.height / 2);
+    // The heart SVG is the deepest element at that point, which is fine — what
+    // matters is that the hit lands inside the favorite and not on the overlay.
+    expect(topmost === button || button.contains(topmost)).toBe(true);
+    expect(topmost).not.toBe(shadow.querySelector('.title__btn'));
+
+    button.click();
+
+    expect(fav.length).toBe(1);
+    expect(view.length).toBe(0);
   });
 
   it('emits nothing when no recipe is set', async () => {
     const { root, spyOnEvent } = await render(<recipe-card />);
     const spy = spyOnEvent('viewDetails');
 
-    const button = root.shadowRoot!.querySelector('.primary') as HTMLButtonElement | null;
+    const button = root.shadowRoot!.querySelector('.title__btn') as HTMLButtonElement | null;
     button?.click();
 
     expect(spy.length).toBe(0);
@@ -139,6 +211,66 @@ describe('recipe-card', () => {
     expect(root.querySelector('#plan')).toBeTruthy();
     expect(root.querySelector('#src')).toBeTruthy();
     expect(root.shadowRoot!.querySelector('slot[name="actions"]')).toBeTruthy();
+  });
+
+  it('omits the footer when nothing is slotted into actions', async () => {
+    const { root } = await render(<recipe-card recipe={RECIPE} />);
+    const footer = root.shadowRoot!.querySelector('.footer') as HTMLElement;
+
+    expect(footer.hidden).toBe(true);
+    expect(footer.getBoundingClientRect().height).toBe(0);
+  });
+
+  it('shows the footer once an action is slotted in', async () => {
+    const { root } = await render(
+      <recipe-card recipe={RECIPE}>
+        <button slot="actions">Add to plan</button>
+      </recipe-card>,
+    );
+    const footer = root.shadowRoot!.querySelector('.footer') as HTMLElement;
+
+    expect(footer.hidden).toBe(false);
+    expect(footer.getBoundingClientRect().height).toBeGreaterThan(0);
+  });
+
+  it('keeps slotted actions clickable through the card overlay', async () => {
+    let clicked = false;
+    const { root } = await render(
+      <recipe-card recipe={RECIPE}>
+        <button id="plan" slot="actions" onClick={() => (clicked = true)}>
+          Add to plan
+        </button>
+      </recipe-card>,
+    );
+    const action = root.querySelector('#plan') as HTMLButtonElement;
+    const trigger = root.shadowRoot!.querySelector('.title__btn') as HTMLElement;
+
+    // A z-index mistake would leave this button dead to the mouse while still
+    // passing a .click() test, since dispatching a click ignores hit-testing.
+    // Assert on the topmost element at the button's real coordinates.
+    const box = action.getBoundingClientRect();
+    expect(box.height).toBeGreaterThan(0);
+    const cx = box.left + box.width / 2;
+    const cy = box.top + box.height / 2;
+
+    expect(document.elementFromPoint(cx, cy)).toBe(action);
+    expect(root.shadowRoot!.elementFromPoint(cx, cy)).not.toBe(trigger);
+
+    action.click();
+    expect(clicked).toBe(true);
+  });
+
+  it('projects content into the rating slot', async () => {
+    const { root } = await render(
+      <recipe-card recipe={RECIPE}>
+        <span id="stars" slot="rating">
+          4.5
+        </span>
+      </recipe-card>,
+    );
+
+    expect(root.querySelector('#stars')).toBeTruthy();
+    expect(root.shadowRoot!.querySelector('slot[name="rating"]')).toBeTruthy();
   });
 
   it('hides the meta row in compact mode', async () => {

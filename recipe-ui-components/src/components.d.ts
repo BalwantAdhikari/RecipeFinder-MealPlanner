@@ -34,11 +34,17 @@ export namespace Components {
         "meals"?: PlannedMeal[] | string;
     }
     /**
-     * A single recipe tile: image, title, category/area meta, and a favorite toggle.
+     * A single recipe tile: image, title, a category/area meta row, and a favorite
+     * toggle.
+     * The whole card is the navigation target. Rather than putting a click handler
+     * on the `article` — which is invisible to keyboards and screen readers — the
+     * title is a real button and an absolutely positioned overlay extends its hit
+     * area over the card. The favorite toggle and anything slotted into `actions`
+     * sit above that overlay, so they stay independently clickable.
      */
     interface RecipeCard {
         /**
-          * Renders a denser card with the description and meta row hidden.
+          * Renders a denser card with the meta row hidden.
           * @default false
          */
         "compact": boolean;
@@ -187,7 +193,13 @@ declare global {
         "viewDetails": { recipeId: string };
     }
     /**
-     * A single recipe tile: image, title, category/area meta, and a favorite toggle.
+     * A single recipe tile: image, title, a category/area meta row, and a favorite
+     * toggle.
+     * The whole card is the navigation target. Rather than putting a click handler
+     * on the `article` — which is invisible to keyboards and screen readers — the
+     * title is a real button and an absolutely positioned overlay extends its hit
+     * area over the card. The favorite toggle and anything slotted into `actions`
+     * sit above that overlay, so they stay independently clickable.
      */
     interface HTMLRecipeCardElement extends Components.RecipeCard, HTMLStencilElement {
         addEventListener<K extends keyof HTMLRecipeCardElementEventMap>(type: K, listener: (this: HTMLRecipeCardElement, ev: RecipeCardCustomEvent<HTMLRecipeCardElementEventMap[K]>) => any, options?: boolean | AddEventListenerOptions): void;
@@ -322,11 +334,17 @@ declare namespace LocalJSX {
         "onRemoveMeal"?: (event: MealPlanDayCustomEvent<{ day: string; slot: MealSlot; recipeId: string }>) => void;
     }
     /**
-     * A single recipe tile: image, title, category/area meta, and a favorite toggle.
+     * A single recipe tile: image, title, a category/area meta row, and a favorite
+     * toggle.
+     * The whole card is the navigation target. Rather than putting a click handler
+     * on the `article` — which is invisible to keyboards and screen readers — the
+     * title is a real button and an absolutely positioned overlay extends its hit
+     * area over the card. The favorite toggle and anything slotted into `actions`
+     * sit above that overlay, so they stay independently clickable.
      */
     interface RecipeCard {
         /**
-          * Renders a denser card with the description and meta row hidden.
+          * Renders a denser card with the meta row hidden.
           * @default false
          */
         "compact"?: boolean;
@@ -498,7 +516,13 @@ declare module "@stencil/core" {
              */
             "meal-plan-day": LocalJSX.IntrinsicElements["meal-plan-day"] & JSXBase.HTMLAttributes<HTMLMealPlanDayElement>;
             /**
-             * A single recipe tile: image, title, category/area meta, and a favorite toggle.
+             * A single recipe tile: image, title, a category/area meta row, and a favorite
+             * toggle.
+             * The whole card is the navigation target. Rather than putting a click handler
+             * on the `article` — which is invisible to keyboards and screen readers — the
+             * title is a real button and an absolutely positioned overlay extends its hit
+             * area over the card. The favorite toggle and anything slotted into `actions`
+             * sit above that overlay, so they stay independently clickable.
              */
             "recipe-card": LocalJSX.IntrinsicElements["recipe-card"] & JSXBase.HTMLAttributes<HTMLRecipeCardElement>;
             /**

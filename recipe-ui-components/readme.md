@@ -171,8 +171,36 @@ export function setProps(node: HTMLElement, values: Record<string, unknown>) {
 | `favoriteToggle` | `{ recipeId: string; isFavorite: boolean }` — the _requested_ next state |
 | `viewDetails`    | `{ recipeId: string }`                                                   |
 
-Slots: `actions` (footer controls), `badge` (image overlay).
-Parts: `card`, `image`, `title`, `favorite`.
+Slots: `actions` (footer controls), `badge` (image overlay), `rating` (right of the meta row).
+Parts: `card`, `image`, `title`, `category`, `favorite`.
+
+**The whole card is the click target.** Rather than a "View recipe" button, the title is a
+real `<button>` whose hit area is stretched over the card with an absolutely positioned
+`::after`. That keeps one focusable navigation target per card and avoids a `click` handler
+on a `<div>`, which is invisible to keyboards and screen readers. The favorite toggle and
+anything slotted into `actions` sit above the overlay, so they stay independently clickable
+— if you add your own absolutely positioned content, give it `z-index: 2` or higher.
+
+**The footer only exists when you fill it.** `actions` starts empty, so a card with no
+consumer controls has no empty strip at the bottom. Actions added later are picked up via
+`slotchange`.
+
+The `rating` slot is the only way to show a rating: this library's data source has no rating
+field, so nothing is displayed by default rather than inventing a value.
+
+```svelte
+<recipe-card use:setProps={{ recipe }}>
+  <recipe-rating slot="rating" value={4.5} readonly></recipe-rating>
+</recipe-card>
+```
+
+Set the category label's colour per category with `--recipe-card-category-color`:
+
+```css
+recipe-card[data-category='Seafood'] {
+  --recipe-card-category-color: #0e7490;
+}
+```
 
 The favorite toggle is a heart — filled when `isFavorite`, outlined when not — drawn as an
 inline SVG so it does not depend on a font having the glyph. Theme it with
@@ -279,15 +307,17 @@ sensible dark values.
 Text and fill roles are deliberately separate tokens, because one hue rarely serves both. If you
 theme these, re-check contrast:
 
-| Token                     | Role                                  | Needs                            |
-| ------------------------- | ------------------------------------- | -------------------------------- |
-| `--recipe-card-accent`    | Button fill, paired with white text   | 4.5:1 against white              |
-| `--recipe-card-chip-text` | Small text on `--recipe-card-chip-bg` | 4.5:1 against that background    |
-| `--recipe-card-muted`     | Larger secondary text                 | 4.5:1 against `--recipe-card-bg` |
+| Token                          | Role                            | Needs                            |
+| ------------------------------ | ------------------------------- | -------------------------------- |
+| `--recipe-card-accent`         | Focus ring and favourite active | 3:1 against `--recipe-card-bg`   |
+| `--recipe-card-category-color` | The category label              | 4.5:1 against `--recipe-card-bg` |
+| `--recipe-card-muted`          | Larger secondary text           | 4.5:1 against `--recipe-card-bg` |
 
-`--recipe-card-chip-text` exists specifically so that mapping `--recipe-card-muted` to a lighter
-grey cannot silently push chip text below AA — the chips are 0.75rem, where a colour that passes
-elsewhere often fails.
+`--recipe-card-category-color` is separate from `--recipe-card-accent` so that recolouring
+categories cannot drag the focus ring along with it. It is 0.75rem uppercase text, where a
+hue chosen to look good as a _fill_ usually fails as text — the default `#c2410c` measures
+5.18:1 on white but only 3.42:1 on the dark surface, which is why the dark scheme ships a
+lighter orange.
 
 ## Development
 
@@ -300,7 +330,7 @@ npm test           # unit + component tests
 
 ### Tests
 
-58 tests across two Vitest projects:
+76 tests across two Vitest projects:
 
 - **`unit`** — helper logic in Stencil's mock DOM. Runs anywhere, no browser.
   ```bash
