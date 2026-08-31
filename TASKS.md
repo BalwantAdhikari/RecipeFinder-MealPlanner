@@ -141,6 +141,11 @@ Design decisions worth noting:
       fixes, each with a `CHANGELOG.md` entry. Note `npm publish` rejects a version that already
       exists (`403 cannot publish over the previously published versions`), so every release needs
       `npm version patch` first — published versions are immutable.
+- [x] **2.10** **`0.1.4` published** — box-sizing reset in every component, fixing day cards
+      rendering taller than their host. The app consumes it and the `::part(day)` workaround is
+      gone. **No app-side workarounds against the library remain.**
+- [x] **2.9** **`0.1.3` published** — heart favourite toggle with `part="favorite"`, and the full
+      meal title on hover.
 - [x] **2.8** **`0.1.2` published** — fixes the meal-plan slot overflow. The app consumes it from
       the registry, and the `::part(slot)` workaround has been removed. No app-side workarounds
       remain against the library.
