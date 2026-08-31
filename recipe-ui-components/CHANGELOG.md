@@ -3,7 +3,7 @@
 All notable changes to `recipe-ui-components`.
 This project follows [semantic versioning](https://semver.org/).
 
-## Unreleased
+## 0.1.2
 
 ### Fixed
 

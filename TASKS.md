@@ -137,8 +137,13 @@ Design decisions worth noting:
 - [x] **2.2** Every `exports`, `main`, `module`, `types`, `collection` and `unpkg` path verified to
       resolve against a real build. Two broken starter paths fixed in 1.1.
 - [x] **2.3** Published. Required **2FA** — see gotcha below.
-- [ ] **2.4** Semver discipline: `0.1.0` initial, minor bump per new component, patch per fix.
-      Maintain `CHANGELOG.md`
+- [x] **2.4** Semver discipline followed: `0.1.0` initial, `0.1.1` and `0.1.2` as patches for
+      fixes, each with a `CHANGELOG.md` entry. Note `npm publish` rejects a version that already
+      exists (`403 cannot publish over the previously published versions`), so every release needs
+      `npm version patch` first — published versions are immutable.
+- [x] **2.8** **`0.1.2` published** — fixes the meal-plan slot overflow. The app consumes it from
+      the registry, and the `::part(slot)` workaround has been removed. No app-side workarounds
+      remain against the library.
 - [x] **2.7** **`0.1.1` published** — https://www.npmjs.com/package/recipe-ui-components. Carries
       the corrected consumption docs, the `recipe-filter-panel` active-count fix, the media
       aspect-ratio fix, the chip contrast tokens, and the heart favorite toggle with
