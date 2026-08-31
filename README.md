@@ -203,14 +203,11 @@ Text and fill colours are separate tokens, because one hue cannot serve both rol
    details page renders "not found" for a user recipe id the browser does not know.
 3. **API recipes are read-only.** Only recipes you created can be edited or deleted.
 4. **TheMealDB has no pagination**, so discovery renders the full result set for a query.
-5. **Beef and Pork are excluded app-wide**, by request. Enforced by recipe id rather than category
-   name, because `filter.php` returns records with no category to test. Deep links to an excluded
-   recipe return 404, so the filter is not bypassable by URL.
-6. **A single warm colour theme**, not a light/dark pair. The design is already dark, and a light
+5. **A single warm colour theme**, not a light/dark pair. The design is already dark, and a light
    version would be a different design, so `prefers-color-scheme` does not invert it.
-7. **Ratings are display-only.** `recipe-rating` supports interaction, but TheMealDB exposes no
+6. **Ratings are display-only.** `recipe-rating` supports interaction, but TheMealDB exposes no
    rating data and per-user ratings would need a backend.
-8. **Drag-and-drop is mouse-only**, because HTML5 drag never fires from touch input. Selecting a
+7. **Drag-and-drop is mouse-only**, because HTML5 drag never fires from touch input. Selecting a
    favourite and then choosing a slot works with any input, including the keyboard.
 
 ---
