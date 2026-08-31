@@ -467,3 +467,81 @@ the prop/event plumbing (6.1–6.2) immediately after the first card renders. Th
 quirks are where most Stencil-in-SvelteKit work stalls, and discovering them late means reworking
 every component's API. Bump the package version as components land rather than saving publishing
 for the end.
+
+---
+
+## Phase 8 — "Tasteful" light redesign (planned)
+
+Adopting a light editorial template: white/cream page, orange accent, bold sans headings, split
+hero, category pill row, and a denser recipe card.
+
+### Decisions taken
+
+| Question | Decision |
+|---|---|
+| Cooking time and star ratings | **Omit both.** TheMealDB provides no time, rating, review count, servings, difficulty or nutrition — verified against the full field list. Nothing on screen will be invented. |
+| Card fidelity | **Exact, via a library `0.2.0`.** The template's card body differs structurally from ours, so this is a real restructure rather than a restyle. |
+| Nav | **Restyle only.** Keep the four real links; drop About, Contact and the avatar rather than ship dead ends. |
+
+### Palette
+
+The template's own orange **fails AA in both roles** — `#FF6B00` is 2.81:1 as text on the background
+and white-on-it is 2.86:1, where 4.5 is required. `#D65200` still fails at 4.08:1. The nearest
+compliant orange is `#C2410C`, which is the accent already in use, so the accent does not actually
+change; the background and neutrals do.
+
+| Token | Value | Verified |
+|---|---|---|
+| `--bg` | `#FFFDF7` | — |
+| `--surface` | `#FFFFFF` | text 14.68:1 |
+| `--surface-2` | `#F3F4F6` | text 13.34:1 |
+| `--text` | `#1F2937` | 14.43:1 on bg |
+| `--muted` | `#6B7280` | 4.75:1 on bg, 4.83:1 on surface |
+| `--muted-strong` | `#4B5563` | 6.87:1 on `--surface-2` — required, `--muted` is only 4.39:1 there |
+| `--accent` | `#C2410C` | 5.09:1 as text, 5.18:1 with white on it |
+| `--accent-on-soft` | `#A63508` | 5.54:1 on the peach pill — `--accent` is only 4.28:1 there |
+| `--accent-soft` | `#FFE5D0` | pill/hover fill |
+| `--accent-vivid` | `#FF6B00` | **decoration only** — 2.81:1, never as an interactive fill or text |
+| `--secondary` | `#2E7D5B` | 5.00:1 as a category label |
+| `--accent-yellow` | `#FFC857` | dark text only; white on it is 1.54:1 |
+| `--border` | `#E5E7EB` | decorative dividers |
+| `--border-strong` | `#8A93A0` | 3.11:1 — interactive borders; `#9CA3AF` fails at 2.54:1 |
+
+### Library `0.2.0` — `recipe-card` restructure
+
+Breaking layout change, hence the minor bump.
+
+- Whole card becomes the navigation target rather than a "View recipe" button. Must stay a real
+  link/button for keyboard and screen-reader users, not a `click` handler on a `div`.
+- Body becomes *title* then a meta row: category on the left, an optional `rating` slot on the right.
+  The app leaves that slot empty; the slot exists so a consumer with rating data can use it.
+- Category label colour becomes themeable per category, so Breakfast/Lunch/Dinner/Desserts can each
+  carry their own colour as in the template.
+- Footer buttons become optional — the `actions` slot stays for consumers that want them.
+- Corner badge (top-left) and favourite toggle (top-right) already exist and are reused as-is.
+
+### App work
+
+1. **Tokens and typography** — light palette above; bold sans for headings, script face retained for
+   the wordmark only.
+2. **Hero** — split layout: copy and search on the left, photograph on the right, cream background.
+   Replaces the current full-bleed photo with a dark scrim.
+3. **Category pills** — horizontal scrollable row with icons, driving the existing filter state.
+   Decide whether the cuisine select stays alongside it.
+4. **Nav** — centred links with an active underline.
+5. **Cards** — consume `0.2.0`, set per-category label colours.
+
+### Verification (same bar as before)
+
+- Contrast checked for every pair **before** use, not after
+- axe-core 0 violations across 9 states — note the light theme means *new* pairs, so the current
+  clean result does not carry over
+- No horizontal overflow at 375 / 768 / 1366 px
+- 35/35 browser feature checks, all unit and live tests green
+- Re-verify against the deployed build, not just locally
+
+### Risk
+
+This is the third full restyle. The app currently reports 0 axe violations and 35/35 feature checks;
+a palette and card-structure change invalidates both results until re-run. The card restructure also
+means the app cannot be upgraded piecemeal — `0.2.0` has to be published and consumed as one step.
