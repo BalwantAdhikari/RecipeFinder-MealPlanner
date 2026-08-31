@@ -38,6 +38,14 @@ patch.
   `--recipe-card-accent` so recolouring categories cannot move the focus ring with it. The dark
   scheme ships a lighter orange because the light default is only 3.42:1 on the dark surface.
 
+### Fixed
+
+- **Emoji replaced with inline SVG in `recipe-search-bar` and the card's image
+  placeholder.** The magnifier (`🔍`), the clear cross (`✕`) and the plate (`🍽`) render as tofu
+  boxes wherever no emoji font is installed — confirmed in headless Chromium on Linux, where the
+  search field showed an empty rectangle. This is the same reasoning the favourite heart already
+  followed; these three were missed at the time.
+
 ### Migration
 
 Consumers who relied on the built-in "View recipe" button should note it no longer exists;

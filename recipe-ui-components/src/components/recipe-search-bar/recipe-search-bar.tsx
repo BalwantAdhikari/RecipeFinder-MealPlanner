@@ -93,9 +93,22 @@ export class RecipeSearchBar {
     return (
       <Host>
         <form class="bar" role="search" onSubmit={this.handleSubmit}>
-          <span class="icon" aria-hidden="true">
-            🔍
-          </span>
+          {/* Inline SVG, not 🔍: the emoji renders as a tofu box on any system
+              without an emoji font, which is exactly what it did in headless
+              Chromium on Linux. Same reasoning as the card's heart. */}
+          <svg
+            class="icon"
+            viewBox="0 0 24 24"
+            aria-hidden="true"
+            focusable="false"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+          >
+            <circle cx="11" cy="11" r="7" />
+            <path d="m20 20-3.8-3.8" />
+          </svg>
 
           <input
             part="field"
@@ -116,7 +129,17 @@ export class RecipeSearchBar {
               aria-label="Clear search"
               onClick={this.handleClear}
             >
-              ✕
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
+                <path d="M6 6l12 12M18 6 6 18" />
+              </svg>
             </button>
           )}
 

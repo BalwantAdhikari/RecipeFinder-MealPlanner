@@ -38,10 +38,14 @@
   box-shadow: 0 0 0 3px rgba(194, 65, 12, 0.15);
 }
 
+/* Sized in rem rather than by font-size, now that this is an SVG and not a
+   glyph in the text flow. */
 .icon {
-  font-size: 0.9375rem;
-  line-height: 1;
-  opacity: 0.6;
+  flex-shrink: 0;
+  width: 1.0625rem;
+  height: 1.0625rem;
+  color: var(--search-muted);
+  opacity: 0.85;
 }
 
 .field {
@@ -70,12 +74,16 @@
   place-items: center;
   width: 1.5rem;
   height: 1.5rem;
-  font-size: 0.75rem;
   color: var(--search-muted);
   cursor: pointer;
   background: transparent;
   border: none;
   border-radius: 999px;
+}
+
+.clear svg {
+  width: 0.8125rem;
+  height: 0.8125rem;
 }
 
 .clear:hover {

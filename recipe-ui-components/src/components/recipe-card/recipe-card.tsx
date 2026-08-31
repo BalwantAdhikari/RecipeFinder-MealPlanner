@@ -118,7 +118,19 @@ export class RecipeCard {
               <img part="image" src={recipe.image} alt={recipe.title} loading="lazy" />
             ) : (
               <div class="media__placeholder" aria-hidden="true">
-                🍽
+                {/* Inline SVG rather than 🍽, which falls back to a tofu box
+                    wherever no emoji font is installed. */}
+                <svg
+                  viewBox="0 0 24 24"
+                  focusable="false"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="1.4"
+                  stroke-linecap="round"
+                >
+                  <path d="M7 3v8a2.5 2.5 0 0 0 5 0V3M9.5 13v8" />
+                  <path d="M16 3c2 0 3.2 1.6 3.2 4S18 21 18 21h-1.6s-1.2-11.6-1.2-14 .8-4 .8-4Z" />
+                </svg>
               </div>
             )}
             <div class="media__badge">

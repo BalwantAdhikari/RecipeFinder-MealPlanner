@@ -89,13 +89,18 @@
   place-items: center;
   width: 100%;
   height: 100%;
-  font-size: 2.5rem;
   /* A soft wash rather than a flat grey, so a recipe with no photo still reads
      as a deliberate card instead of a broken one. */
   background:
     radial-gradient(circle at 50% 40%, rgba(0, 0, 0, 0.04), transparent 70%),
     var(--recipe-card-media-bg, #f4f4f5);
   opacity: 0.9;
+}
+
+.media__placeholder svg {
+  width: 2.5rem;
+  height: 2.5rem;
+  color: var(--recipe-card-muted);
 }
 
 .media__badge {
