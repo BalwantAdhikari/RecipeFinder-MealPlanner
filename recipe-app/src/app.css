@@ -243,11 +243,6 @@ code {
 	color: var(--muted);
 }
 
-.hero__search {
-	width: 100%;
-	max-width: 30rem;
-}
-
 .hero__media {
 	position: relative;
 	order: -1;

@@ -76,15 +76,7 @@
 			Discover easy, healthy and mouthwatering recipes for every moment of your day.
 		</p>
 
-		<div class="hero__search">
-			<recipe-search-bar
-				use:setProps={{ value: data.query, placeholder: 'Search recipes, ingredients…' }}
-				use:on={{
-					searchChange: (e) => navigate({ q: e.detail.query }),
-					searchClear: () => navigate({ q: '' })
-				}}
-			></recipe-search-bar>
-		</div>
+		<a class="btn btn--primary" href="#gallery">Browse Recipes</a>
 	</div>
 
 	<div class="hero__media">
@@ -179,6 +171,14 @@
 	</div>
 
 	<div class="toolbar">
+		<recipe-search-bar
+			use:setProps={{ value: data.query, placeholder: 'Search recipes by name…' }}
+			use:on={{
+				searchChange: (e) => navigate({ q: e.detail.query }),
+				searchClear: () => navigate({ q: '' })
+			}}
+		></recipe-search-bar>
+
 		<recipe-filter-panel
 			use:setProps={{ categories: data.categories, areas: data.areas, selected: data.filters }}
 			use:on={{
