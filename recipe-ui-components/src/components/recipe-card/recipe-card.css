@@ -20,11 +20,15 @@
   --recipe-card-muted: #71717a;
   --recipe-card-accent: #c2410c;
   /* The category label's colour, meant to be set per category by the consumer.
-     It is small text on --recipe-card-bg, so any override needs 4.5:1 against
-     that background — a hue picked to look good as a fill will usually fail
-     here. Separate from --recipe-card-accent so recolouring categories cannot
-     move the focus ring or button fill with them. */
+     Separate from --recipe-card-accent so recolouring categories cannot move
+     the focus ring or button fill with them.
+
+     The label is small text on --recipe-card-category-bg, so a pair of
+     overrides needs 4.5:1 against *each other* — not against the card. A hue
+     picked to look good as a tint will usually fail as its own text colour, so
+     check both together. */
   --recipe-card-category-color: #c2410c;
+  --recipe-card-category-bg: #fff1e9;
   --recipe-card-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 
   display: block;
@@ -216,11 +220,17 @@
   font-size: 0.75rem;
 }
 
+/*
+ * A tinted pill rather than bare uppercase text: at 0.75rem the tint is what
+ * makes the category read as a label rather than as part of the title, and it
+ * carries the category's colour more legibly than letter-spaced caps.
+ */
 .category {
-  font-weight: 700;
+  padding: 0.1875rem 0.5rem;
+  font-weight: 600;
   color: var(--recipe-card-category-color);
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+  background: var(--recipe-card-category-bg);
+  border-radius: 999px;
 }
 
 .area {
@@ -265,7 +275,8 @@
     --recipe-card-muted: #a1a1aa;
     --recipe-card-media-bg: #27272a;
     /* The light default (#c2410c) is only 2.34:1 on #18181b. This lighter
-       orange gets 7.32:1 while still reading as the same hue. */
-    --recipe-card-category-color: #fb923c;
+       orange gets 6.05:1 on the dark tint below. */
+    --recipe-card-category-color: #fdba74;
+    --recipe-card-category-bg: #341a0c;
   }
 }

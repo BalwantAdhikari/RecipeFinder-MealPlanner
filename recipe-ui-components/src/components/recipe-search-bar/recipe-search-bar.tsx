@@ -10,6 +10,10 @@ import { debounce } from '../../utils/utils';
  *
  * @slot filters - Rendered to the right of the input, inside the same bar. Use
  * for a filter toggle or sort control.
+ * @slot hint - Rendered between the input and the submit button. Intended for a
+ * keyboard-shortcut hint. Kept as a slot rather than a prop because the right
+ * text depends on the user's platform (⌘K vs Ctrl K), which the consumer knows
+ * and this component does not.
  *
  * @part field - The text input element.
  * @part submit - The search button.
@@ -31,6 +35,13 @@ export class RecipeSearchBar {
 
   /** Accessible label for the input, used when no visible label is present. */
   @Prop() label: string = 'Search recipes';
+
+  /**
+   * Renders the submit control as a round icon button instead of a labelled
+   * one. The accessible name is unchanged either way — the label is visually
+   * replaced by the icon, not removed.
+   */
+  @Prop() iconSubmit: boolean = false;
 
   /** Emitted after the debounce interval, or immediately on submit. */
   @Event() searchChange!: EventEmitter<{ query: string }>;
@@ -143,10 +154,32 @@ export class RecipeSearchBar {
             </button>
           )}
 
+          <slot name="hint" />
+
           <slot name="filters" />
 
-          <button part="submit" type="submit" class="submit">
-            Search
+          <button
+            part="submit"
+            type="submit"
+            class={{ 'submit': true, 'submit--icon': this.iconSubmit }}
+            aria-label={this.iconSubmit ? 'Search' : undefined}
+          >
+            {this.iconSubmit ? (
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.2"
+                stroke-linecap="round"
+              >
+                <circle cx="11" cy="11" r="7" />
+                <path d="m20 20-3.8-3.8" />
+              </svg>
+            ) : (
+              'Search'
+            )}
           </button>
         </form>
       </Host>

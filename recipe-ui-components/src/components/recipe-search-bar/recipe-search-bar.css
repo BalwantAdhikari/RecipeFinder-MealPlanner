@@ -18,6 +18,11 @@
   --search-muted: #71717a;
   --search-accent: #c2410c;
   --search-radius: 10px;
+  /* Vertical breathing room inside the bar. Exposed because a consumer using
+     this as a page's primary control wants a taller field than one using it in
+     a toolbar, and height here is padding rather than a fixed value. */
+  --search-pad-y: 0.375rem;
+  --search-shadow: none;
 
   display: block;
   font-family: inherit;
@@ -27,10 +32,11 @@
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  padding: 0.375rem 0.5rem 0.375rem 0.75rem;
+  padding: var(--search-pad-y) 0.5rem var(--search-pad-y) 0.75rem;
   background: var(--search-bg);
   border: 1px solid var(--search-border);
   border-radius: var(--search-radius);
+  box-shadow: var(--search-shadow);
 }
 
 .bar:focus-within {
@@ -102,6 +108,25 @@
   background: var(--search-accent);
   border: none;
   border-radius: 7px;
+}
+
+/*
+ * A round icon button, for use as a page's primary search control. Square-ish
+ * so the circle reads as deliberate, and sized to stay a comfortable pointer
+ * target at the 2.75rem tall bar this is meant for.
+ */
+.submit--icon {
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  border-radius: 50%;
+}
+
+.submit--icon svg {
+  width: 1.125rem;
+  height: 1.125rem;
 }
 
 .submit:hover {

@@ -38,6 +38,20 @@ patch.
   `--recipe-card-accent` so recolouring categories cannot move the focus ring with it. The dark
   scheme ships a lighter orange because the light default is only 3.42:1 on the dark surface.
 
+### Added
+
+- **`iconSubmit` on `recipe-search-bar`**, rendering the submit control as a round icon button for
+  use as a page's primary search field. The accessible name is unchanged — the label is visually
+  replaced by the icon, not removed.
+- **`hint` slot on `recipe-search-bar`**, between the input and the submit button, for a
+  keyboard-shortcut chip. A slot rather than a prop because the right text depends on the user's
+  platform (⌘K vs Ctrl K), which the consumer knows and the component does not.
+- **`--search-pad-y` and `--search-shadow`**, so a consumer can make the bar taller and softer
+  without reaching through `::part`. Height here is padding, not a fixed value.
+- **`--recipe-card-category-bg`**, making the category a tinted pill rather than letter-spaced
+  caps. Both category tokens must be checked **against each other**, not against the card: a hue
+  chosen to look good as a tint usually fails as its own text colour.
+
 ### Fixed
 
 - **Emoji replaced with inline SVG in `recipe-search-bar` and the card's image

@@ -123,6 +123,11 @@ export namespace Components {
          */
         "debounceMs": number;
         /**
+          * Renders the submit control as a round icon button instead of a labelled one. The accessible name is unchanged either way — the label is visually replaced by the icon, not removed.
+          * @default false
+         */
+        "iconSubmit": boolean;
+        /**
           * Accessible label for the input, used when no visible label is present.
           * @default 'Search recipes'
          */
@@ -443,6 +448,11 @@ declare namespace LocalJSX {
          */
         "debounceMs"?: number;
         /**
+          * Renders the submit control as a round icon button instead of a labelled one. The accessible name is unchanged either way — the label is visually replaced by the icon, not removed.
+          * @default false
+         */
+        "iconSubmit"?: boolean;
+        /**
           * Accessible label for the input, used when no visible label is present.
           * @default 'Search recipes'
          */
@@ -495,6 +505,7 @@ declare namespace LocalJSX {
         "placeholder": string;
         "debounceMs": number;
         "label": string;
+        "iconSubmit": boolean;
     }
 
     interface IntrinsicElements {
