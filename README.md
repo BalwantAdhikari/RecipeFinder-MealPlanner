@@ -28,9 +28,7 @@ this repo but consumed as a third party would consume it.
 │   ├── src/lib/api/         TheMealDB client + normalizer
 │   ├── src/lib/stores/      favorites, user recipes, meal plan (localStorage)
 │   ├── src/lib/components/  Stencil interop actions + the recipe form
-│   └── src/routes/          seven routes
-│
-└── TASKS.md                 phase-by-phase build log, decisions and gotchas
+    └── src/routes/          seven routes
 ```
 
 Two independent packages with their own `package.json`. Deliberately **not** an npm workspace: a

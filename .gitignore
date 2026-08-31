@@ -40,3 +40,6 @@ coverage/
 __screenshots__/
 .vitest-attachments/
 *.tsbuildinfo
+
+# Local build log, deliberately not published.
+TASKS.md
