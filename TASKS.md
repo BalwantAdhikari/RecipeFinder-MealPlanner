@@ -407,9 +407,13 @@ Two process notes worth keeping:
 
 ## Phase 7 — Deliverables
 
-- [ ] **7.1** Deploy: `@sveltejs/adapter-vercel` or Netlify → live URL
-- [ ] **7.2** Root README: setup, install, `npm run dev`, build, assumptions, npm package link,
-      GitHub link, deployed URL
+- [x] **7.1** Deployed to Vercel: **https://smart-rasoi.vercel.app** (`@sveltejs/adapter-vercel`,
+      `nodejs22.x`). Verified live: all routes 200, unknown recipe id 404, SSR renders real
+      TheMealDB data, search reaches the deployed serverless function, details does a real
+      server-side lookup, self-hosted font and icon serve, and axe-core reports **0 violations
+      across 6 pages in both colour schemes**.
+- [x] **7.2** Root README written with all four deliverable links, setup, dev server, architecture
+      notes, assumptions and Vercel steps. Every test count checked against a real run.
 - [ ] **7.3** Library README finalized (see 1.7)
 - [ ] **7.4** Final pass: dead starter code removed, lint clean, tests green
 - [x] **7.5** `0.1.1` published and consumed (see 2.7). Both app-side workarounds removed.

@@ -5,7 +5,7 @@ A recipe discovery and weekly meal-planning app built with **Svelte 5 / SvelteKi
 
 | Deliverable           | Link                                                        |
 | --------------------- | ----------------------------------------------------------- |
-| **Live app**          | _to be filled in after the first Vercel deploy_             |
+| **Live app**          | https://smart-rasoi.vercel.app                              |
 | **npm package**       | https://www.npmjs.com/package/recipe-ui-components          |
 | **GitHub repository** | https://github.com/BalwantAdhikari/RecipeFinder-MealPlanner |
 
