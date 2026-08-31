@@ -1,3 +1,16 @@
+/*
+ * Shadow roots do not inherit the host page's box-sizing reset — style
+ * isolation cuts both ways — so each component needs its own. Without it any
+ * element combining an explicit width/height with padding renders larger than
+ * declared, which is how `meal-plan-day`'s cards ended up overflowing their
+ * host.
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :host {
   --filter-bg: #fafafa;
   --filter-border: #e4e4e7;

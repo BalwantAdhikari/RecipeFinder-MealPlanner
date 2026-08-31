@@ -68,7 +68,16 @@ export class MealPlanDay {
         {meal ? (
           <div class="meal">
             {meal.image && <img class="meal__img" src={meal.image} alt="" loading="lazy" />}
-            <span class="meal__title">{meal.title}</span>
+            {/*
+              The day columns are narrow, so a longer title is clipped with an
+              ellipsis. `title` gives sighted mouse users the full text back on
+              hover. Screen readers are unaffected either way — the complete
+              string is in the DOM, only visually truncated — so this is a
+              presentational affordance rather than an accessibility fix.
+            */}
+            <span class="meal__title" title={meal.title}>
+              {meal.title}
+            </span>
             <button
               type="button"
               class="meal__remove"

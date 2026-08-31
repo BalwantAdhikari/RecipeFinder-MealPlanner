@@ -1,3 +1,16 @@
+/*
+ * Shadow roots do not inherit the host page's box-sizing reset — style
+ * isolation cuts both ways — so each component needs its own. Without it any
+ * element combining an explicit width/height with padding renders larger than
+ * declared: `.day` here had `height: 100%` plus 12px vertical padding and spilled
+ * 26px below its host, which read as the day cards piling onto each other.
+ */
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
 :host {
   --day-bg: #ffffff;
   --day-border: #e4e4e7;

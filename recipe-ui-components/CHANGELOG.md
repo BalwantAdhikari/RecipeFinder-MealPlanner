@@ -3,6 +3,30 @@
 All notable changes to `recipe-ui-components`.
 This project follows [semantic versioning](https://semver.org/).
 
+## 0.1.4
+
+### Fixed
+
+- **Day cards could outgrow their host and lap onto the row below.** Shadow roots do not
+  inherit the host page's `box-sizing` reset — style isolation cuts both ways — and `.day`
+  combines `height: 100%` with padding. As `content-box` it rendered 26px taller than its host,
+  which looked like the cards piling on top of each other whenever the grid stretched them.
+  Every component now sets its own `box-sizing: border-box` reset, which also removes the same
+  latent risk from `.select`, `.field`, `.fav`, `.star` and `.add`.
+
+  Consumers on 0.1.3 can work around it with
+  `meal-plan-day::part(day) { box-sizing: border-box }`.
+
+## 0.1.3
+
+### Added
+
+- **The full meal title is now available on hover.** Day columns are narrow, so a longer title
+  is clipped with an ellipsis; `meal-plan-day` now sets `title` on the meal name so mouse users
+  can recover the complete text without opening the recipe. Purely presentational — the full
+  string was always in the DOM, so screen readers were never affected. Keyboard users still get
+  the full name from the recipe page.
+
 ## 0.1.2
 
 ### Fixed

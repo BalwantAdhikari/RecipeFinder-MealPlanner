@@ -570,6 +570,12 @@ recipe-search-bar::part(submit) {
 meal-plan-day::part(day) {
 	border-radius: var(--radius-lg);
 	box-shadow: var(--shadow-2);
+	/* Shadow roots do not inherit this page's box-sizing reset, and the day card
+	   combines `height: 100%` with padding — so in the published 0.1.3 it renders
+	   26px taller than its host and laps onto whatever sits below, which reads as
+	   the cards piling up. Fixed inside the library from 0.1.4; this keeps 0.1.3
+	   correct and is harmless afterwards. */
+	box-sizing: border-box;
 }
 
 meal-plan-day::part(slot) {

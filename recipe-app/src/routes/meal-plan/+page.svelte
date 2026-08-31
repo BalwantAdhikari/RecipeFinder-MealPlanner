@@ -104,7 +104,32 @@
 		}, 300);
 	}
 
-	function openPicker(day: Day, slot: MealSlot) {
+	/**
+	 * A favourite armed for placement.
+	 *
+	 * HTML5 drag-and-drop only fires from mouse input — touch never produces a
+	 * `dragstart` — so dragging is unavailable on phones and in device emulation.
+	 * Arming a recipe and then choosing a slot works with any input, and makes the
+	 * strip keyboard-operable too, which `<div draggable>` never was.
+	 */
+	let armed = $state<Recipe | null>(null);
+
+	function toggleArmed(recipe: Recipe) {
+		armed = armed?.id === recipe.id ? null : recipe;
+	}
+
+	/**
+	 * A slot was activated.
+	 *
+	 * With a recipe armed this places it directly; otherwise it opens the picker,
+	 * which is the original behaviour.
+	 */
+	function onSlotActivate(day: Day, slot: MealSlot) {
+		if (armed) {
+			mealPlan.assign(day, slot, armed);
+			armed = null;
+			return;
+		}
 		picking = { day, slot };
 		closeSearch();
 	}
@@ -230,7 +255,7 @@
 					isToday: day === currentDay
 				}}
 				use:on={{
-					addMealRequest: (e) => openPicker(e.detail.day as Day, e.detail.slot),
+					addMealRequest: (e) => onSlotActivate(e.detail.day as Day, e.detail.slot),
 					removeMeal: (e) => mealPlan.unassign(e.detail.day as Day, e.detail.slot),
 					mealDrop: async (e) => {
 						const recipe = await resolveDropped(e.detail.recipeId);
@@ -247,29 +272,40 @@
 
 	{#if favoriteRecipes.length > 0}
 		<section class="drag-source">
-			<h2>Drag a favourite onto a slot</h2>
-			<p class="lede">Or open any recipe and use “Add to meal plan”.</p>
+			<h2>Add a favourite to a slot</h2>
+			<p class="lede">
+				{#if armed}
+					<strong>{armed.title}</strong> is selected — now choose a slot above.
+				{:else}
+					Select one, then choose a slot. On a mouse you can also drag it across.
+				{/if}
+			</p>
 
-			<!-- tabindex so the overflow region can be scrolled by keyboard; without it
-		     axe flags scrollable-region-focusable and the strip is mouse-only.
-		     Svelte's a11y rule objects to a nonnegative tabindex on a noninteractive
-		     role, but WAI-ARIA guidance is explicit that scroll containers should be
-		     focusable, and axe enforces it — so the rule is suppressed here rather
-		     than leaving the strip keyboard-inaccessible. -->
-			<!-- svelte-ignore a11y_no_noninteractive_tabindex -->
-			<div class="strip" role="list" tabindex="0" aria-label="Favourite recipes available to drag">
+			{#if armed}
+				<button class="btn btn--sm" onclick={() => (armed = null)}>Cancel selection</button>
+			{/if}
+
+			<!-- Buttons rather than `<div draggable>`: draggable divs are invisible to
+			     the keyboard, and drag alone leaves touch users with no route at all.
+			     The buttons also make the scroll region focusable, so axe's
+			     scrollable-region-focusable rule is satisfied without a tabindex. -->
+			<ul class="strip" aria-label="Favourite recipes">
 				{#each favoriteRecipes as recipe (recipe.id)}
-					<div
-						class="chip-card"
-						draggable="true"
-						ondragstart={(e) => e.dataTransfer?.setData('text/plain', recipe.id)}
-						role="listitem"
-					>
-						{#if recipe.image}<img src={recipe.image} alt="" />{/if}
-						<span>{recipe.title}</span>
-					</div>
+					<li>
+						<button
+							class="chip-card"
+							class:chip-card--armed={armed?.id === recipe.id}
+							aria-pressed={armed?.id === recipe.id}
+							draggable="true"
+							ondragstart={(e) => e.dataTransfer?.setData('text/plain', recipe.id)}
+							onclick={() => toggleArmed(recipe)}
+						>
+							{#if recipe.image}<img src={recipe.image} alt="" />{/if}
+							<span>{recipe.title}</span>
+						</button>
+					</li>
 				{/each}
-			</div>
+			</ul>
 		</section>
 	{/if}
 </div>
@@ -437,10 +473,15 @@
 	.strip {
 		display: flex;
 		gap: var(--space-3);
-		margin-top: var(--space-4);
-		padding-bottom: var(--space-2);
+		margin: var(--space-4) 0 0;
+		padding: 0 0 var(--space-2);
 		overflow-x: auto;
 		scrollbar-width: thin;
+		list-style: none;
+	}
+
+	.strip li {
+		flex-shrink: 0;
 	}
 
 	.chip-card {

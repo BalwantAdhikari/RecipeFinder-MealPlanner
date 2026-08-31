@@ -93,6 +93,35 @@ describe('meal-plan-day', () => {
     expect(spy.length).toBe(0);
   });
 
+  it('sizes the day card as border-box so it cannot outgrow its host', async () => {
+    // Regression: shadow roots do not inherit the host page's box-sizing reset,
+    // and .day combines `height: 100%` with padding. As content-box it rendered
+    // 26px taller than its host and lapped onto the card below.
+    const { root } = await render(<meal-plan-day day="Monday" />);
+    const card = root.shadowRoot!.querySelector('[part="day"]') as HTMLElement;
+
+    expect(getComputedStyle(card).boxSizing).toBe('border-box');
+  });
+
+  it('exposes the full title on hover, since the slot clips it', async () => {
+    const long = 'A Deliberately Very Long Recipe Title That Must Truncate';
+    const { root } = await render(
+      <meal-plan-day day="Sunday" meals={[{ ...DINNER, title: long }]} />,
+    );
+    const title = root.shadowRoot!.querySelector('.meal__title')!;
+
+    // The visible text is clipped by CSS, so the tooltip is the only way a mouse
+    // user recovers the full name without opening the recipe.
+    expect(title.getAttribute('title')).toBe(long);
+    expect(title.textContent!.trim()).toBe(long);
+  });
+
+  it('has no title attribute on an empty slot', async () => {
+    const { root } = await render(<meal-plan-day day="Monday" />);
+
+    expect(root.shadowRoot!.querySelector('.meal__title')).toBeNull();
+  });
+
   it('lets a long meal title shrink rather than widening the slot', async () => {
     // Regression: the slot's implicit `auto` grid column sized to max-content,
     // so a long title grew the track and pushed the slot outside the day card.
