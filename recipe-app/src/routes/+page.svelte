@@ -13,23 +13,21 @@
 
 	let { data }: { data: PageData } = $props();
 
-	// User recipes come from localStorage, which the server cannot read, so the
-	// merge happens here rather than in the load function.
+	// User recipes live in localStorage, which the server can't see, so they get
+	// merged in here rather than in the load function.
 	const results = $derived(
 		mergeResults(filterLocal(userRecipes.all, data.query, data.filters), data.recipes)
 	);
 
 	/**
-	 * Push search/filter state into the URL.
-	 *
-	 * The URL is the single source of truth, so the load function re-runs and the
-	 * result is shareable and back-button friendly. `keepFocus` stops the search
-	 * input losing focus mid-typing; `noScroll` avoids jumping to the top on every
-	 * keystroke.
+	 * Search and filter state lives in the URL, so the load function re-runs and
+	 * every result is shareable and survives the back button. `keepFocus` keeps
+	 * the cursor in the search box while typing, `noScroll` stops the page
+	 * jumping to the top on every keystroke.
 	 */
 	function buildUrl(next: { q?: string; filters?: RecipeFilters; sort?: Sort; page?: number }) {
-		// A throwaway builder, serialised to a string below and never held as
-		// state, so the reactive wrapper buys nothing.
+		// Built, stringified, thrown away — never held as state, so the reactive
+		// wrapper would buy nothing.
 		// eslint-disable-next-line svelte/prefer-svelte-reactivity
 		const params = new URLSearchParams(page.url.searchParams);
 		const q = next.q ?? data.query;
@@ -46,10 +44,10 @@
 		if (sort !== 'found') params.set('sort', sort);
 		else params.delete('sort');
 
-		// Anything that changes which recipes match invalidates the page number, so
-		// an explicit page only survives when it is the thing being changed.
-		// Named pageNum, not page: `page` is the imported $app/state store read at
-		// the top of this function, and shadowing it is a use-before-declaration.
+		// Changing what matches invalidates the page number, so a page only survives
+		// when it's the thing being changed.
+		// Called pageNum because `page` is the $app/state import read just above —
+		// shadowing it here is a use-before-declaration.
 		const pageNum = next.page ?? (next.sort !== undefined ? data.page : 1);
 		if (pageNum > 1) params.set('page', String(pageNum));
 		else params.delete('page');
@@ -60,8 +58,8 @@
 	}
 
 	function navigate(next: { q?: string; filters?: RecipeFilters; sort?: Sort; page?: number }) {
-		// The pathname comes from resolve() inside buildUrl; the rule cannot see
-		// through the helper, and only a query string is appended.
+		// buildUrl() already ran the pathname through resolve(); the lint rule just
+		// can't see through the helper.
 		// eslint-disable-next-line svelte/no-navigation-without-resolve
 		goto(buildUrl(next), {
 			keepFocus: true,
@@ -70,18 +68,16 @@
 		});
 	}
 
-	/** The category pills are real links, so they need an href, not a handler. */
+	/** The chips are real links, so they need an href rather than a handler. */
 	const categoryHref = (category: string) =>
 		buildUrl({ filters: { ...data.filters, category: category || undefined } });
 
 	const activeFilterCount = $derived(Object.values(data.filters).filter(Boolean).length);
 
 	/**
-	 * Sorted results.
-	 *
-	 * `localeCompare` rather than `<`, so accented titles order the way a reader
-	 * expects instead of by code point. Sorting a copy keeps `results` — which
-	 * other derivations read — in the order the merge produced.
+	 * `localeCompare` rather than `<`, so accented titles land where a reader
+	 * expects instead of where their code points fall. Sorts a copy, since other
+	 * derivations read `results` in merge order.
 	 */
 	const sorted = $derived.by(() => {
 		const list = [...results];
@@ -91,7 +87,7 @@
 			case 'name-desc':
 				return list.sort((a, b) => b.title.localeCompare(a.title));
 			case 'category':
-				// Ties inside a category still read alphabetically.
+				// Within a category, still alphabetical.
 				return list.sort(
 					(a, b) =>
 						(a.category ?? '').localeCompare(b.category ?? '') || a.title.localeCompare(b.title)
@@ -104,11 +100,9 @@
 	const totalPages = $derived(Math.max(1, Math.ceil(sorted.length / PER_PAGE)));
 
 	/**
-	 * The page actually shown.
-	 *
-	 * Clamped, because the page number comes from the URL while the result count
-	 * comes from the API: ?page=9 on a two-page result, or narrowing the filters
-	 * while deep in a list, would otherwise render nothing at all.
+	 * Clamped, because the page number comes from the URL but the result count
+	 * comes from the API. Otherwise `?page=9` on a two-page result — or narrowing
+	 * the filters while deep in a list — renders an empty grid.
 	 */
 	const currentPage = $derived(Math.min(Math.max(1, data.page), totalPages));
 	const pageItems = $derived(sorted.slice((currentPage - 1) * PER_PAGE, currentPage * PER_PAGE));
@@ -124,23 +118,21 @@
 	let chipsOverflowLeft = $state(false);
 
 	/**
-	 * Whether the chip row has more to show in either direction.
-	 *
-	 * CSS cannot ask "am I overflowing", and an always-on fade would dim the last
-	 * chip even when every category fits — which is what a wider viewport or a
-	 * shorter category list gives you.
+	 * Whether there's more chip row in either direction. CSS can't ask "am I
+	 * overflowing", and a permanent fade would dim the last chip even when they
+	 * all fit.
 	 */
 	function measureChips() {
 		if (!chipsEl) return;
 		const max = chipsEl.scrollWidth - chipsEl.clientWidth;
-		// A sub-pixel tolerance: fractional layout widths otherwise leave the fade
-		// on permanently at some zoom levels.
+		// The 1px slack is for fractional layout widths, which otherwise leave the
+		// fade stuck on at some zoom levels.
 		chipsOverflowLeft = chipsEl.scrollLeft > 1;
 		chipsOverflowRight = chipsEl.scrollLeft < max - 1;
 	}
 
 	$effect(() => {
-		// Re-measure when the category list changes, not just on scroll.
+		// Also re-measure when the category list changes, not just on scroll.
 		void data.categories;
 		measureChips();
 	});
@@ -155,11 +147,9 @@
 	}
 
 	/**
-	 * Dismiss on outside click and on Escape.
-	 *
-	 * Deliberately not a modal dialog: it holds one select, and trapping focus
-	 * for that would be heavier than the content warrants. Escape and
-	 * click-outside are what a non-modal popover owes the user.
+	 * Closes on Escape and on a click outside. Not a modal dialog on purpose —
+	 * it holds one select, and trapping focus around that is more machinery than
+	 * the content deserves.
 	 */
 	function onDocumentPointer(event: MouseEvent) {
 		if (filtersOpen && filterWrap && !filterWrap.contains(event.target as Node)) {
@@ -170,7 +160,7 @@
 	function onDocumentKey(event: KeyboardEvent) {
 		if (event.key === 'Escape' && filtersOpen) {
 			closeFilters();
-			// Return focus to the trigger, or it lands nowhere after the panel goes.
+			// Put focus back on the trigger, or it ends up nowhere.
 			filterWrap?.querySelector<HTMLButtonElement>('.filterbtn')?.focus();
 		}
 	}
@@ -179,18 +169,12 @@
 
 	let searchBar = $state<HTMLElement | null>(null);
 
-	/**
-	 * Ctrl/⌘ K focuses the search field.
-	 *
-	 * No visible hint any more — the shortcut is a shortcut, not an advertisement.
-	 * That also removes the platform detection the chip needed, since the handler
-	 * accepts either modifier.
-	 */
+	/** Ctrl/⌘ K focuses the search field. No visible hint; it just works. */
 	onMount(() => {
 		const onKeydown = async (event: KeyboardEvent) => {
 			if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey)) return;
-			// Ctrl+K is a shell binding and Cmd+K is used by some browsers, so this
-			// only takes over once the element can actually take focus.
+			// Ctrl+K means something in shells and Cmd+K in some browsers, so only
+			// take it over once the element can actually accept focus.
 			const el = searchBar as (HTMLElement & { setFocus?: () => Promise<void> }) | null;
 			if (!el) return;
 			await customElements.whenDefined('recipe-search-bar');
@@ -202,8 +186,8 @@
 		return () => document.removeEventListener('keydown', onKeydown);
 	});
 
-	// Hero image comes from the current results rather than a hardcoded asset, so
-	// it always resolves and always reflects what the app can actually show.
+	// Hero image comes from the current results rather than a bundled file, so it
+	// always loads and always shows something the app can actually serve.
 	const heroImage = $derived(data.recipes.find((r) => r.image)?.image);
 </script>
 
@@ -212,7 +196,7 @@
 	<meta name="description" content="Search and browse recipes from TheMealDB." />
 </svelte:head>
 
-<!-- Top level: svelte:document cannot sit inside an element or block. -->
+<!-- Has to be top level; svelte:document can't sit inside an element or block. -->
 <svelte:document onclick={onDocumentPointer} onkeydown={onDocumentKey} />
 <svelte:window onresize={measureChips} />
 
@@ -394,10 +378,9 @@
 		<p class="chipsblock__label">Popular</p>
 
 		<!--
-			The pathname in every href below comes from resolve() inside buildUrl(), but
-			the rule only inspects the attribute expression and cannot follow the helper.
-			Scoped to this row rather than the file so a genuinely unresolved link
-			elsewhere still fails the build.
+			Every href below gets its pathname from resolve() inside buildUrl(), but the
+			rule only looks at the attribute itself. Disabled for this row only, so a
+			genuinely unresolved link elsewhere still fails the build.
 		-->
 		<!-- eslint-disable svelte/no-navigation-without-resolve -->
 		<div
@@ -494,7 +477,7 @@
 		</div>
 
 		{#if totalPages > 1}
-			<!-- Links again, for the same reason the category chips are links. -->
+			<!-- Links, for the same reason the chips are. -->
 			<!-- eslint-disable svelte/no-navigation-without-resolve -->
 			<nav class="pager" aria-label="Pagination">
 				<a
@@ -547,17 +530,17 @@
 
 <style>
 	/*
-	 * The header is sticky, so the "Browse Recipes" anchor would otherwise scroll
-	 * the gallery heading underneath it. Sized to the header plus a little air.
+	 * The header is sticky, so without this the "Browse Recipes" anchor scrolls
+	 * the gallery heading underneath it. Header height plus a little air.
 	 */
 	#gallery {
 		scroll-margin-top: 5.5rem;
 	}
 
 	/*
-	 * Search is the page's primary control, so it stands alone on the background
-	 * rather than inside a bordered panel with the filters. The old panel put a
-	 * box around a box around a control.
+	 * Search is the main control here, so it sits on the background rather than
+	 * inside a panel with the filters — that was a box around a box around a
+	 * control.
 	 */
 	.searchrow {
 		display: flex;
@@ -655,9 +638,8 @@
 	}
 
 	/*
-	 * The fades are masks rather than overlaid gradients, so they work over the
-	 * page background whatever it is and never intercept a pointer heading for a
-	 * chip underneath.
+	 * Masks rather than overlaid gradients: they work over any page background and
+	 * can't swallow a click meant for a chip underneath.
 	 */
 	.pills--more-right {
 		mask-image: linear-gradient(to right, #000 calc(100% - 3rem), transparent);
@@ -756,8 +738,8 @@
 	}
 
 	/*
-	 * The ends of the range stay in the DOM rather than disappearing, so the
-	 * control does not reflow as you page through. aria-disabled plus
+	 * The arrows stay put rather than disappearing, so the control doesn't reflow
+	 * as you page through. aria-disabled plus
 	 * tabindex="-1" is set in the markup; pointer-events keeps the click dead to
 	 * match.
 	 */

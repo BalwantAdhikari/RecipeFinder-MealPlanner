@@ -1,13 +1,12 @@
 /**
- * Shared constants for the discovery gallery.
+ * Constants shared by the gallery's load function and its component.
  *
- * These live here rather than in `+page.ts` because SvelteKit restricts what a
- * route module may export — anything beyond `load`, `prerender`, `ssr` and
- * friends fails the build unless it is `_`-prefixed. Both the load function and
- * the page component need them, so a plain module is the honest home.
+ * They're here rather than in `+page.ts` because SvelteKit only lets a route
+ * module export a fixed set of names — anything else fails the build unless it
+ * starts with an underscore.
  */
 
-/** Sort orders the data can actually support. */
+/** The sort orders our data can actually back up. */
 export const SORTS = ['found', 'name-asc', 'name-desc', 'category'] as const;
 
 export type Sort = (typeof SORTS)[number];
@@ -15,7 +14,7 @@ export type Sort = (typeof SORTS)[number];
 /** Cards per page. */
 export const PER_PAGE = 12;
 
-/** Visible labels, in the order the select offers them. */
+/** Labels, in the order the select shows them. */
 export const SORT_LABELS: Record<Sort, string> = {
 	found: 'As found',
 	'name-asc': 'Name A–Z',
