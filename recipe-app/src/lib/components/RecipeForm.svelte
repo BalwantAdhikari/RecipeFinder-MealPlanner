@@ -297,8 +297,8 @@
 		font: inherit;
 		font-size: var(--step-0);
 		color: var(--text);
-		background: #fff;
-		border: 1px solid var(--border-cream);
+		background: var(--surface);
+		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-sm);
 		transition:
 			border-color 140ms var(--ease),
@@ -349,8 +349,8 @@
 		gap: var(--space-3);
 		margin: 0;
 		padding: var(--space-4);
-		background: #fff;
-		border: 1px solid var(--border-cream);
+		background: var(--surface);
+		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-lg);
 		box-shadow: none;
 	}
@@ -396,8 +396,8 @@
 		font-size: var(--step--1);
 		color: var(--muted);
 		cursor: pointer;
-		background: #fff;
-		border: 1px solid var(--border-cream);
+		background: var(--surface);
+		border: 1px solid var(--border-strong);
 		border-radius: var(--radius-sm);
 		transition:
 			color 120ms var(--ease),

@@ -237,7 +237,7 @@
 		margin: 0;
 		padding: 0;
 		list-style: none;
-		border-top: 1px solid var(--border-cream);
+		border-top: 1px solid var(--border);
 	}
 
 	.ingredients li {
@@ -245,7 +245,7 @@
 		justify-content: space-between;
 		gap: var(--space-4);
 		padding: var(--space-3) 0;
-		border-bottom: 1px solid var(--border-cream);
+		border-bottom: 1px solid var(--border);
 	}
 
 	.measure {
