@@ -675,3 +675,43 @@ Escape/outside-click/focus-return, each sort order actually ordered, page bounda
 tint contrast per rendered category, chip fades, hover contrast), plus 23 chip, 19 card, 9 glyph and
 35/35 feature checks, 64 app and 76 library tests, 14 live API tests, and **0 axe violations across
 20 page states** including the popover open.
+
+## Publishing 0.2.0 mid-flight, and 0.3.0
+
+`0.2.0` was published from `d39d6b0`, part-way through the work that kept adding to it. The publish
+attempt that followed failed with `E403 You cannot publish over the previously published versions`,
+which is the registry being correct: versions are immutable.
+
+So the published `0.2.0` contains the card restructure and the emoji fixes, but **not** the icon
+submit, `hint` slot, search size tokens or category tint. Those are `0.3.0`. The changelog was
+edited to say so — it had been crediting `0.2.0` with features that are not in it, which would have
+misled anyone reading it against the actual package.
+
+The app moved to `^0.3.0` rather than `^0.2.0`: a caret on a `0.x` version pins the minor, so
+`^0.2.0` resolves `>=0.2.0 <0.3.0` and would never pick up `0.3.0`.
+
+### npm outside the project directories uses the Cox registry
+
+Fetching the published tarball into a scratch directory failed with
+`403 Forbidden - GET https://artifactory.coxautoinc.com/...`. Outside `recipe-app/` and
+`recipe-ui-components/` there is no project `.npmrc`, so npm falls back to the global config, which
+points at Artifactory.
+
+This matters for the "no Cox credentials on this project" constraint. The two project `.npmrc`
+files pin `registry=https://registry.npmjs.org/`, and that is what makes installs, builds and
+publishes run against the public registry — but **only for commands run from inside those
+directories**. Anything run elsewhere needs `--registry=https://registry.npmjs.org/` explicitly.
+
+It also invalidated a first attempt at diffing the published package against the local build: every
+feature came back "missing" because the tarball had never downloaded. Control checks against
+features known to be in `0.2.0` are what exposed it — worth doing whenever a check reports that
+everything is absent.
+
+### `git stash push --staged` is not available in this git
+
+Used while splitting a commit; it failed with `unknown option`, and `set -e` did not stop the rest
+of the sequence, so a `--amend` picked up the staged app change and squashed two packages into one
+commit. Unpicked with `reset --soft` and `restore --staged`. The same `git add -A` also swept in a
+whitespace-only `.npmrc` change; the file itself is safe, holding a `${NPM_TOKEN}` reference rather
+than a token.
+
