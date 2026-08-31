@@ -415,9 +415,34 @@ Two process notes worth keeping:
 - [x] **7.2** Root README written with all four deliverable links, setup, dev server, architecture
       notes, assumptions and Vercel steps. Every test count checked against a real run.
 - [ ] **7.3** Library README finalized (see 1.7)
-- [ ] **7.4** Final pass: dead starter code removed, lint clean, tests green
+- [x] **7.4** **Final pass complete.**
+
+      | Check | Result |
+      |---|---|
+      | Library build | OK |
+      | Library tests | 59 browser + 9 unit |
+      | App unit tests | 64 |
+      | App live API tests | 14 |
+      | App lint (prettier + eslint) | clean |
+      | Library lint (prettier) | clean |
+      | `svelte-check` | 0 errors, 0 warnings |
+      | Production build | OK, emits Vercel function output |
+      | axe-core, live site | 0 violations, 6 pages × 2 schemes |
+      | Dead code | none — every `src/lib` module is referenced |
+      | Build artifacts tracked | 0 |
+      | Secrets/tokens tracked | 0 |
+      | Corporate URLs tracked | 0 |
+      | Tracked files / size | 93 files, 737 KB |
+      | Version alignment | source, npm latest, app dependency and lockfile all `0.1.4` |
+
+      Links verified: GitHub, live app, TheMealDB, Stencil, Vercel and both shields badges all
+      resolve; every relative link in the three READMEs points at a real file. The npmjs.com
+      package page could **not** be verified from automation — it serves a Cloudflare challenge to
+      curl and to headless browsers alike — but the package is confirmed published via the registry
+      API and by installing it.
 - [x] **7.5** `0.1.1` published and consumed (see 2.7). Both app-side workarounds removed.
-- [ ] **7.6** Confirm the README's npm link points at the latest published version
+- [x] **7.6** README links point at the package root, so they always resolve to the latest
+      published version rather than a pinned one.
 
 ---
 
