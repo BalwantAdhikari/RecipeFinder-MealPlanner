@@ -260,6 +260,11 @@ if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
 Size it with `--search-pad-y` (the bar's height is padding, not a fixed value), `--search-radius`
 and `--search-shadow`.
 
+If your app renders one colour scheme regardless of the user's OS setting, also set
+`--search-clear-hover-bg`. The clear button's hover fill has a `prefers-color-scheme` default, which
+keys off the OS rather than your app, so a light app on a dark OS otherwise gets a near-black fill
+under its own dark icon.
+
 ### `<recipe-filter-panel>`
 
 Fully controlled — holds no selection state of its own.

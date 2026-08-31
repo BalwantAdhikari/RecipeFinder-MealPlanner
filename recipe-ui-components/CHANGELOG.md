@@ -3,6 +3,27 @@
 All notable changes to `recipe-ui-components`.
 This project follows [semantic versioning](https://semver.org/).
 
+## 0.3.1
+
+### Fixed
+
+- **The search bar's clear button turned near-black on hover for consumers pinned to the light
+  scheme.** `.clear:hover` set a literal `#f4f4f5`, and this file's own
+  `prefers-color-scheme: dark` block overrode it with `#27272a`. That block fires on the _user's_
+  OS setting, so an app that renders light regardless — by overriding `--search-text` and friends
+  from outside — got a near-black fill under its own near-black icon: **1.17:1**, and the ✕
+  disappeared on hover.
+
+  A consumer could not fix this from outside: `.clear` is not an exposed part and the value was a
+  literal rather than a custom property. It is now `--search-clear-hover-bg`, which defaults to the
+  same two values per scheme but can be pinned.
+
+  If your app forces one colour scheme, set it alongside the other `--search-*` tokens.
+
+  **`recipe-filter-panel` has the same shape of bug** — `.select` hardcodes `background: #27272a`
+  and `border-color: #52525b` inside its dark block, unreachable from outside. Not fixed in this
+  release.
+
 ## 0.3.0
 
 Additions from consuming 0.2.0 in a search-first page layout. No breaking changes.
