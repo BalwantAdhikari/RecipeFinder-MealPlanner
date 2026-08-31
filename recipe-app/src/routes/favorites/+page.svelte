@@ -2,7 +2,7 @@
 	import { goto } from '$app/navigation';
 	import { resolve } from '$app/paths';
 	import { on, setProps } from '$lib/components/stencil';
-	import { categoryColor } from '$lib/components/category-icons';
+	import { categoryColor, categoryTint } from '$lib/components/categories';
 	import { favorites, userRecipes, mealPlan, today } from '$lib/stores';
 	import { lookupById, isExcludedCategory } from '$lib/api';
 	import type { Recipe } from 'recipe-ui-components';
@@ -90,7 +90,9 @@
 		<div class="card-grid">
 			{#each resolved as recipe (recipe.id)}
 				<recipe-card
-					style="--recipe-card-category-color: {categoryColor(recipe.category)}"
+					style="--recipe-card-category-color: {categoryColor(
+						recipe.category
+					)}; --recipe-card-category-bg: {categoryTint(recipe.category)}"
 					use:setProps={{ recipe, isFavorite: true }}
 					use:on={{
 						favoriteToggle: (e) => favorites.set(e.detail.recipeId, e.detail.isFavorite),

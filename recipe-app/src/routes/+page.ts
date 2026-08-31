@@ -1,4 +1,5 @@
 import { discover, listCategories, AREAS, MealDbError } from '$lib/api';
+import { SORTS, type Sort } from '$lib/gallery';
 import type { RecipeFilters } from 'recipe-ui-components';
 import type { PageLoad } from './$types';
 
@@ -15,6 +16,12 @@ import type { PageLoad } from './$types';
 export const load: PageLoad = async ({ fetch, url }) => {
 	const query = url.searchParams.get('q') ?? '';
 
+	// Unknown values fall back rather than erroring: these come from the query
+	// string, so anyone can type anything into them.
+	const requested = url.searchParams.get('sort');
+	const sort: Sort = SORTS.includes(requested as Sort) ? (requested as Sort) : 'found';
+	const page = Math.max(1, Number.parseInt(url.searchParams.get('page') ?? '1', 10) || 1);
+
 	// Only include keys that are actually set. An object like
 	// `{ category: undefined }` still has a key, and anything counting active
 	// filters by key would report a filter that is not applied.
@@ -29,7 +36,7 @@ export const load: PageLoad = async ({ fetch, url }) => {
 			discover(fetch, query, filters),
 			listCategories(fetch)
 		]);
-		return { recipes, categories, areas: [...AREAS], query, filters, error: null };
+		return { recipes, categories, areas: [...AREAS], query, filters, sort, page, error: null };
 	} catch (err) {
 		// A failed search should not blank the page — render the controls with an
 		// inline error so the user can retry or change the query.
@@ -41,6 +48,8 @@ export const load: PageLoad = async ({ fetch, url }) => {
 			areas: [...AREAS],
 			query,
 			filters,
+			sort,
+			page,
 			error: message
 		};
 	}

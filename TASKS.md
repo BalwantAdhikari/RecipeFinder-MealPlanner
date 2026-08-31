@@ -604,3 +604,74 @@ to a consumer who has it.
 This is the third full restyle. The app currently reports 0 axe violations and 35/35 feature checks;
 a palette and card-structure change invalidates both results until re-run. The card restructure also
 means the app cannot be upgraded piecemeal — `0.2.0` has to be published and consumed as one step.
+
+## Phase 9 — search-first gallery
+
+Applied a review of the gallery: search promoted to the page's primary control, dropdowns replaced
+by chips plus a popover, warm neutrals, tinted category pills, and honest sort and pagination.
+
+### The proposed palette, measured
+
+The review's orange `#F97316` **fails in every role it was proposed for**: 2.80:1 with white text
+on it and 2.68:1 as text on the background, against a 4.5:1 minimum. `#EA580C` also fails, at
+3.56:1. This is the third bright orange to fail this check — the same finding as `#FF6B00` in
+Phase 8.
+
+So the warm neutrals were adopted and the orange was not. `--accent` stays `#C2410C`; `#F97316`
+became `--accent-vivid`, decoration only.
+
+| Token | Was | Now | Note |
+|---|---|---|---|
+| `--bg` | `#FFFDF7` cream | `#FAFAF9` | warm neutral, food photography carries the colour |
+| `--surface-2` | `#F3F4F6` | `#F5F5F4` | |
+| `--text` | `#1F2937` | `#1C1917` | 16.74:1 on bg |
+| `--muted` | `#6B7280` | `#78716C` | 4.59:1 on bg, 4.80:1 on surface — **4.40:1 on surface-2, still unsafe there** |
+| `--muted-strong` | `#4B5563` | `#57534E` | 6.99:1 on surface-2 |
+| `--border` | `#E5E7EB` | `#E7E5E4` | decorative, 1.26:1 |
+| `--border-strong` | `#8A93A0` | `#8A8580` | interactive, 3.65:1 |
+
+Also rejected: `#22C55E` as a "success" colour (2.28:1 as text or with white on it) and `#FBBF24`
+with white text (1.67:1). The greens already in the category map are the compliant ones.
+
+Changing values rather than names meant no dangling-token risk this time — the failure mode from
+Phase 8.1 was renaming, not re-valuing.
+
+### Not built, for lack of data
+
+Cooking time, difficulty, dietary flags, star ratings and a "Popular" sort. TheMealDB has none of
+these fields. They appear in the reference mockup, and filling them would mean inventing values for
+every recipe. Sort offers what the data supports: as-found, name A–Z, name Z–A, category.
+
+### Findings
+
+**A pre-existing AA failure on `.btn:hover`.** It put `--accent` on `--accent-soft` — 4.28:1, and
+the file's own header already warned that this pair needs `--accent-on-soft`. It survived every
+previous audit because **axe does not evaluate hover states**. Found by reading the base button
+styles while adding a disabled state, not by tooling. The verification script now measures hover
+contrast for `.btn`, `.filterbtn`, `.pager__num` and `.pill` explicitly.
+
+**`+page.ts` cannot export constants.** SvelteKit validates route module exports against a fixed
+list, so `PER_PAGE`/`SORTS` failed the build with `Invalid export`. They live in `$lib/gallery.ts`
+now, imported by both the load function and the page.
+
+**A local named `page` shadows the `$app/state` import.** `buildUrl` reads `page.url` and then
+declared `const page`, which is a use-before-declaration in the same scope. Renamed `pageNum`.
+
+**`<svelte:document>` must be top level**, not nested in the markup where it is used.
+
+**Pagination breaks tests that count cards.** A page caps at 12, so "did the result set change"
+cannot be answered by counting rendered cards — it now compares the reported total.
+
+**Two of my own assertions could not fail.** The round-submit check demanded a literal
+`border-radius: 50%`, but the app's `::part(submit)` overrides it with `999px`, which on a 36px box
+is still a circle. The chip-fade check compared `scrollWidth` to `clientWidth` at a wide viewport,
+where the container's `max-width` means the row never fits — so the assertion passed without
+testing anything. Both now assert on behaviour.
+
+### Verification
+
+48 checks on the redesign (search bar geometry, the real Ctrl/⌘ K shortcut, popover open/close/
+Escape/outside-click/focus-return, each sort order actually ordered, page boundaries and clamping,
+tint contrast per rendered category, chip fades, hover contrast), plus 23 chip, 19 card, 9 glyph and
+35/35 feature checks, 64 app and 76 library tests, 14 live API tests, and **0 axe violations across
+20 page states** including the popover open.
