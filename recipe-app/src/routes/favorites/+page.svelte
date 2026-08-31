@@ -3,7 +3,7 @@
 	import { resolve } from '$app/paths';
 	import { on, setProps } from '$lib/components/stencil';
 	import { categoryColor, categoryTint } from '$lib/components/categories';
-	import { favorites, userRecipes, mealPlan, today } from '$lib/stores';
+	import { favorites, userRecipes } from '$lib/stores';
 	import { lookupById, isExcludedCategory } from '$lib/api';
 	import type { Recipe } from 'recipe-ui-components';
 
@@ -102,16 +102,6 @@
 					{#if recipe.source === 'user'}
 						<span slot="badge" class="badge">Mine</span>
 					{/if}
-					<button
-						slot="actions"
-						class="btn btn--sm btn--on-cream"
-						onclick={() => {
-							mealPlan.assign(today(), 'dinner', recipe);
-							goto(resolve('/meal-plan'));
-						}}
-					>
-						Add to plan
-					</button>
 				</recipe-card>
 			{/each}
 		</div>

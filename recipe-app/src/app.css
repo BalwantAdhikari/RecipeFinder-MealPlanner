@@ -499,6 +499,10 @@ recipe-rating {
 	--search-text: var(--text);
 	--search-muted: var(--muted);
 	--search-accent: var(--accent);
+	/* This app is light regardless of the OS setting, and the component's default
+	   for this one keys off prefers-color-scheme — leaving it unset gives a
+	   near-black hover fill under near-black text on a dark OS. */
+	--search-clear-hover-bg: var(--surface-2);
 	--search-radius: var(--radius-full);
 
 	--filter-bg: transparent;

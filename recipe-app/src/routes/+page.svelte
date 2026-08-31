@@ -5,8 +5,8 @@
 	import { on, setProps } from '$lib/components/stencil';
 	import { categoryColor, categoryTint } from '$lib/components/categories';
 	import { filterLocal, mergeResults } from '$lib/api';
-	import { favorites, userRecipes, mealPlan, today } from '$lib/stores';
-	import type { Recipe, RecipeFilters } from 'recipe-ui-components';
+	import { favorites, userRecipes } from '$lib/stores';
+	import type { RecipeFilters } from 'recipe-ui-components';
 	import { onMount } from 'svelte';
 	import { PER_PAGE, SORT_LABELS, type Sort } from '$lib/gallery';
 	import type { PageData } from './$types';
@@ -73,11 +73,6 @@
 	/** The category pills are real links, so they need an href, not a handler. */
 	const categoryHref = (category: string) =>
 		buildUrl({ filters: { ...data.filters, category: category || undefined } });
-
-	function addToPlan(recipe: Recipe) {
-		mealPlan.assign(today(), 'dinner', recipe);
-		goto(resolve('/meal-plan'));
-	}
 
 	const activeFilterCount = $derived(Object.values(data.filters).filter(Boolean).length);
 
@@ -185,18 +180,13 @@
 	let searchBar = $state<HTMLElement | null>(null);
 
 	/**
-	 * Rendered only once mounted, and empty on the server.
+	 * Ctrl/⌘ K focuses the search field.
 	 *
-	 * The right label depends on the platform, which the server cannot know, so
-	 * rendering a guess would either mismatch during hydration or show ⌘ to a
-	 * Windows user.
+	 * No visible hint any more — the shortcut is a shortcut, not an advertisement.
+	 * That also removes the platform detection the chip needed, since the handler
+	 * accepts either modifier.
 	 */
-	let shortcutLabel = $state('');
-
 	onMount(() => {
-		const isMac = /mac|iphone|ipad/i.test(navigator.platform || navigator.userAgent);
-		shortcutLabel = isMac ? '⌘K' : 'Ctrl K';
-
 		const onKeydown = async (event: KeyboardEvent) => {
 			if (event.key.toLowerCase() !== 'k' || !(event.metaKey || event.ctrlKey)) return;
 			// Ctrl+K is a shell binding and Cmd+K is used by some browsers, so this
@@ -340,13 +330,7 @@
 				searchChange: (e) => navigate({ q: e.detail.query }),
 				searchClear: () => navigate({ q: '' })
 			}}
-		>
-			{#if shortcutLabel}
-				<!-- Decoration for pointer and keyboard users; the shortcut itself is bound
-				     on the document, so announcing it here would only add noise. -->
-				<kbd slot="hint" class="kbd" aria-hidden="true">{shortcutLabel}</kbd>
-			{/if}
-		</recipe-search-bar>
+		></recipe-search-bar>
 
 		<div class="filterwrap" bind:this={filterWrap}>
 			<button
@@ -505,13 +489,6 @@
 					{#if recipe.source === 'user'}
 						<span slot="badge" class="badge">Mine</span>
 					{/if}
-					<button
-						class="btn btn--sm btn--on-cream"
-						slot="actions"
-						onclick={() => addToPlan(recipe)}
-					>
-						Add to plan
-					</button>
 				</recipe-card>
 			{/each}
 		</div>
@@ -598,30 +575,6 @@
 		--search-pad-y: 0.625rem;
 		--search-border: var(--border);
 		--search-shadow: 0 1px 2px rgba(28, 25, 23, 0.04), 0 8px 24px rgba(28, 25, 23, 0.05);
-	}
-
-	/*
-	 * Hidden by default and shown only where the shortcut is both usable and
-	 * affordable: a coarse pointer has no Ctrl key, and on a narrow field the
-	 * chip eats enough width to truncate the placeholder.
-	 */
-	.kbd {
-		display: none;
-		padding: 0.1875rem 0.4375rem;
-		font-family: inherit;
-		font-size: 0.75rem;
-		font-weight: 600;
-		color: var(--muted-strong);
-		white-space: nowrap;
-		background: var(--surface-2);
-		border: 1px solid var(--border);
-		border-radius: 6px;
-	}
-
-	@media (min-width: 40rem) and (pointer: fine) {
-		.kbd {
-			display: inline-block;
-		}
 	}
 
 	/* ------------------------------------------------- the filters popover */
