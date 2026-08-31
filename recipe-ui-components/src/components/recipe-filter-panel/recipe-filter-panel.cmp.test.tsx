@@ -11,9 +11,7 @@ function choose(el: HTMLSelectElement, value: string) {
 
 describe('recipe-filter-panel', () => {
   it('renders a select per populated option list', async () => {
-    const { root } = await render(
-      <recipe-filter-panel categories={CATEGORIES} areas={AREAS} />,
-    );
+    const { root } = await render(<recipe-filter-panel categories={CATEGORIES} areas={AREAS} />);
     const selects = root.shadowRoot!.querySelectorAll('select');
 
     expect(selects.length).toBe(2);
@@ -28,9 +26,7 @@ describe('recipe-filter-panel', () => {
   });
 
   it('accepts option lists as JSON strings', async () => {
-    const { root } = await render(
-      <recipe-filter-panel categories={JSON.stringify(CATEGORIES)} />,
-    );
+    const { root } = await render(<recipe-filter-panel categories={JSON.stringify(CATEGORIES)} />);
 
     expect(root.shadowRoot!.querySelectorAll('option').length).toBe(CATEGORIES.length + 1);
   });
@@ -45,11 +41,7 @@ describe('recipe-filter-panel', () => {
 
   it('emits the full merged filter state on change', async () => {
     const { root, spyOnEvent } = await render(
-      <recipe-filter-panel
-        categories={CATEGORIES}
-        areas={AREAS}
-        selected={{ area: 'Italian' }}
-      />,
+      <recipe-filter-panel categories={CATEGORIES} areas={AREAS} selected={{ area: 'Italian' }} />,
     );
     const spy = spyOnEvent('filterChange');
 

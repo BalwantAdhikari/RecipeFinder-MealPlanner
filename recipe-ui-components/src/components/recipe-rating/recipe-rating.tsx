@@ -52,22 +52,24 @@ export class RecipeRating {
     return (
       <Host>
         <div
-          class={{ rating: true, 'rating--interactive': !this.readonly }}
+          class={{ 'rating': true, 'rating--interactive': !this.readonly }}
           part="rating"
           role={this.readonly ? 'img' : 'radiogroup'}
-          aria-label={
-            this.readonly ? `${this.label}: ${value} out of ${max}` : this.label
-          }
+          aria-label={this.readonly ? `${this.label}: ${value} out of ${max}` : this.label}
         >
           {stars.map(star =>
             this.readonly ? (
-              <span class={{ star: true, 'star--on': star <= value }} part="star" aria-hidden="true">
+              <span
+                class={{ 'star': true, 'star--on': star <= value }}
+                part="star"
+                aria-hidden="true"
+              >
                 ★
               </span>
             ) : (
               <button
                 type="button"
-                class={{ star: true, 'star--on': star <= value }}
+                class={{ 'star': true, 'star--on': star <= value }}
                 part="star"
                 role="radio"
                 aria-checked={String(star === value)}

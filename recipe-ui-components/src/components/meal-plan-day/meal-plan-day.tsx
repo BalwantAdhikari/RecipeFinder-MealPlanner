@@ -58,7 +58,7 @@ export class MealPlanDay {
   private renderSlot(slot: MealSlot, meal: PlannedMeal | undefined) {
     return (
       <li
-        class={{ slot: true, 'slot--filled': !!meal }}
+        class={{ 'slot': true, 'slot--filled': !!meal }}
         part="slot"
         onDragOver={this.handleDragOver}
         onDrop={this.handleDrop(slot)}
@@ -82,9 +82,7 @@ export class MealPlanDay {
               type="button"
               class="meal__remove"
               aria-label={`Remove ${meal.title} from ${slot} on ${this.day}`}
-              onClick={() =>
-                this.removeMeal.emit({ day: this.day, slot, recipeId: meal.recipeId })
-              }
+              onClick={() => this.removeMeal.emit({ day: this.day, slot, recipeId: meal.recipeId })}
             >
               ✕
             </button>
@@ -109,7 +107,7 @@ export class MealPlanDay {
 
     return (
       <Host>
-        <section class={{ day: true, 'day--today': this.isToday }} part="day">
+        <section class={{ 'day': true, 'day--today': this.isToday }} part="day">
           <header class="head">
             <h3 class="name">{this.day}</h3>
             {this.isToday && <span class="today">Today</span>}

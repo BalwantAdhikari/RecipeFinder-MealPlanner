@@ -1,14 +1,4 @@
-import {
-  Component,
-  Prop,
-  State,
-  Watch,
-  Event,
-  EventEmitter,
-  Method,
-  h,
-  Host,
-} from '@stencil/core';
+import { Component, Prop, State, Watch, Event, EventEmitter, Method, h, Host } from '@stencil/core';
 import { debounce } from '../../utils/utils';
 
 /**
@@ -120,7 +110,12 @@ export class RecipeSearchBar {
           />
 
           {this.draft !== '' && (
-            <button type="button" class="clear" aria-label="Clear search" onClick={this.handleClear}>
+            <button
+              type="button"
+              class="clear"
+              aria-label="Clear search"
+              onClick={this.handleClear}
+            >
               ✕
             </button>
           )}

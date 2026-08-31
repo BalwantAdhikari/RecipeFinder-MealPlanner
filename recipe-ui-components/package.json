@@ -61,7 +61,9 @@
     "test": "stencil-test --prod",
     "test:watch": "stencil-test --prod --watch",
     "generate": "stencil generate",
-    "prepublishOnly": "npm run build"
+    "prepublishOnly": "npm run build",
+    "lint": "prettier --check \"src/**/*.{ts,tsx,css}\" \"*.md\" \"*.ts\" \"*.mts\"",
+    "format": "prettier --write \"src/**/*.{ts,tsx,css}\" \"*.md\" \"*.ts\" \"*.mts\""
   },
   "devDependencies": {
     "@stencil/core": "^4.27.1 || ^5.0.0-0",
@@ -69,6 +71,7 @@
     "@types/node": "^22.13.5",
     "@vitest/browser-playwright": "^4.0.0",
     "playwright": "^1.52.0",
+    "prettier": "^3.9.6",
     "vitest": "^4.0.0"
   }
 }

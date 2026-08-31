@@ -29,9 +29,7 @@ describe('meal-plan-day', () => {
   });
 
   it('accepts meals as a JSON string', async () => {
-    const { root } = await render(
-      <meal-plan-day day="Tuesday" meals={JSON.stringify([DINNER])} />,
-    );
+    const { root } = await render(<meal-plan-day day="Tuesday" meals={JSON.stringify([DINNER])} />);
 
     expect(root.shadowRoot!.querySelector('.meal__title')!.textContent).toBe(DINNER.title);
   });

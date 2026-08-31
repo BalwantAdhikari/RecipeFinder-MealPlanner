@@ -55,7 +55,10 @@ The lazy build is the right choice when you serve the package as static assets r
 bundling it — one small entry file, components fetched on demand:
 
 ```html
-<script type="module" src="/node_modules/recipe-ui-components/dist/recipe-ui-components/recipe-ui-components.esm.js"></script>
+<script
+  type="module"
+  src="/node_modules/recipe-ui-components/dist/recipe-ui-components/recipe-ui-components.esm.js"
+></script>
 ```
 
 ### Types

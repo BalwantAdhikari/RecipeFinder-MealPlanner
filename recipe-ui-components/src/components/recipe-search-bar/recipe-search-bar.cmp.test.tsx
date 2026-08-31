@@ -58,8 +58,8 @@ describe('recipe-search-bar', () => {
     const input = root.shadowRoot!.querySelector('input') as HTMLInputElement;
 
     type(input, 'soup');
-    root.shadowRoot!
-      .querySelector('form')!
+    root
+      .shadowRoot!.querySelector('form')!
       .dispatchEvent(new Event('submit', { bubbles: true, cancelable: true }));
 
     expect(spy.length).toBe(1);

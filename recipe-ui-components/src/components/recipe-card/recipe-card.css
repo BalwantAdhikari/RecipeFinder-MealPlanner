@@ -41,7 +41,9 @@
   border: 1px solid var(--recipe-card-border);
   border-radius: var(--recipe-card-radius);
   box-shadow: var(--recipe-card-shadow);
-  transition: box-shadow 150ms ease, transform 150ms ease;
+  transition:
+    box-shadow 150ms ease,
+    transform 150ms ease;
 }
 
 .card:hover {

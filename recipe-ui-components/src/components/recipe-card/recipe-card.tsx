@@ -81,7 +81,7 @@ export class RecipeCard {
 
     return (
       <Host>
-        <article class={{ card: true, 'card--compact': this.compact }} part="card">
+        <article class={{ 'card': true, 'card--compact': this.compact }} part="card">
           <div class="media">
             {recipe.image ? (
               <img part="image" src={recipe.image} alt={recipe.title} loading="lazy" />
@@ -96,7 +96,7 @@ export class RecipeCard {
             <button
               type="button"
               part="favorite"
-              class={{ fav: true, 'fav--active': this.isFavorite }}
+              class={{ 'fav': true, 'fav--active': this.isFavorite }}
               aria-pressed={String(this.isFavorite)}
               aria-label={this.isFavorite ? 'Remove from favorites' : 'Add to favorites'}
               onClick={this.handleFavorite}
