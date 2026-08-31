@@ -84,7 +84,19 @@ export class MealPlanDay {
               aria-label={`Remove ${meal.title} from ${slot} on ${this.day}`}
               onClick={() => this.removeMeal.emit({ day: this.day, slot, recipeId: meal.recipeId })}
             >
-              ✕
+              {/* Inline SVG, not ✕: a dingbat depends on the font having the
+                  glyph, and this is the only way to undo a planned meal. */}
+              <svg
+                viewBox="0 0 24 24"
+                aria-hidden="true"
+                focusable="false"
+                fill="none"
+                stroke="currentColor"
+                stroke-width="2.4"
+                stroke-linecap="round"
+              >
+                <path d="M6 6l12 12M18 6 6 18" />
+              </svg>
             </button>
           </div>
         ) : (

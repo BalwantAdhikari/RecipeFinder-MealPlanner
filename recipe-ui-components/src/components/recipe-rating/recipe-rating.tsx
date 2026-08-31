@@ -64,7 +64,21 @@ export class RecipeRating {
                 part="star"
                 aria-hidden="true"
               >
-                ★
+                {/* Inline SVG rather than ★: the filled/outline distinction is
+                    what conveys the value, and a dingbat depends on the font
+                    having the glyph at all. */}
+                <svg
+                  class="star__icon"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  focusable="false"
+                  fill={star <= value ? 'currentColor' : 'none'}
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linejoin="round"
+                >
+                  <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8L3.5 9.7l5.9-.9L12 3.5Z" />
+                </svg>
               </span>
             ) : (
               <button
@@ -76,7 +90,18 @@ export class RecipeRating {
                 aria-label={`${star} of ${max}`}
                 onClick={() => this.handleSelect(star)}
               >
-                ★
+                <svg
+                  class="star__icon"
+                  viewBox="0 0 24 24"
+                  aria-hidden="true"
+                  focusable="false"
+                  fill={star <= value ? 'currentColor' : 'none'}
+                  stroke="currentColor"
+                  stroke-width="1.6"
+                  stroke-linejoin="round"
+                >
+                  <path d="M12 3.5l2.6 5.3 5.9.9-4.3 4.1 1 5.8-5.2-2.8-5.2 2.8 1-5.8L3.5 9.7l5.9-.9L12 3.5Z" />
+                </svg>
               </button>
             ),
           )}

@@ -3,6 +3,43 @@
 All notable changes to `recipe-ui-components`.
 This project follows [semantic versioning](https://semver.org/).
 
+## 0.3.0
+
+Additions from consuming 0.2.0 in a search-first page layout. No breaking changes.
+
+### Added
+
+- **`iconSubmit` on `recipe-search-bar`**, rendering the submit control as a round icon button for
+  use as a page's primary search field. The accessible name is unchanged — the label is visually
+  replaced by the icon, not removed.
+- **`hint` slot on `recipe-search-bar`**, between the input and the submit button, for a
+  keyboard-shortcut chip. A slot rather than a prop because the right text depends on the user's
+  platform (⌘K vs Ctrl K), which the consumer knows and the component does not.
+- **`--search-pad-y` and `--search-shadow`**, so a consumer can make the bar taller and softer
+  without reaching through `::part`. Height in this component is padding rather than a fixed
+  value, which is why it needed exposing.
+- **`--recipe-card-category-bg`**, making the category a tinted pill rather than letter-spaced
+  caps. Both category tokens must be checked **against each other**, not against the card: a hue
+  chosen to look good as a tint usually fails as its own text colour, which is why the dark scheme
+  ships a different pair rather than reusing the light one.
+
+### Changed
+
+- **The category label is a tinted pill instead of letter-spaced uppercase.** At 0.75rem the tint
+  is what makes it read as a label rather than as part of the title. `--recipe-card-category-bg`
+  defaults to a light peach, so the change is visible without any theming.
+
+### Fixed
+
+- **The last two glyph dependencies are gone.** `meal-plan-day`'s remove button used `✕` and
+  `recipe-rating`'s stars used `★`. Both are dingbats rather than emoji, so they survive on more
+  systems than the ones fixed in 0.2.0, but both still depend on the font having the glyph — and
+  the remove button is the only way to undo a planned meal. Now inline SVG, like every other icon
+  in the library.
+
+  `--rating-size` still controls star size; it drives `width`/`height` now rather than
+  `font-size`.
+
 ## 0.2.0
 
 A layout change to `recipe-card` that consumers will see, hence the minor bump rather than a
@@ -38,27 +75,16 @@ patch.
   `--recipe-card-accent` so recolouring categories cannot move the focus ring with it. The dark
   scheme ships a lighter orange because the light default is only 3.42:1 on the dark surface.
 
-### Added
-
-- **`iconSubmit` on `recipe-search-bar`**, rendering the submit control as a round icon button for
-  use as a page's primary search field. The accessible name is unchanged — the label is visually
-  replaced by the icon, not removed.
-- **`hint` slot on `recipe-search-bar`**, between the input and the submit button, for a
-  keyboard-shortcut chip. A slot rather than a prop because the right text depends on the user's
-  platform (⌘K vs Ctrl K), which the consumer knows and the component does not.
-- **`--search-pad-y` and `--search-shadow`**, so a consumer can make the bar taller and softer
-  without reaching through `::part`. Height here is padding, not a fixed value.
-- **`--recipe-card-category-bg`**, making the category a tinted pill rather than letter-spaced
-  caps. Both category tokens must be checked **against each other**, not against the card: a hue
-  chosen to look good as a tint usually fails as its own text colour.
-
 ### Fixed
 
 - **Emoji replaced with inline SVG in `recipe-search-bar` and the card's image
-  placeholder.** The magnifier (`🔍`), the clear cross (`✕`) and the plate (`🍽`) render as tofu
-  boxes wherever no emoji font is installed — confirmed in headless Chromium on Linux, where the
-  search field showed an empty rectangle. This is the same reasoning the favourite heart already
-  followed; these three were missed at the time.
+  placeholder.** The magnifier (`🔍`), the search bar's clear cross and the plate (`🍽`) render as
+  tofu boxes wherever no emoji font is installed — confirmed in headless Chromium on Linux, where
+  the search field showed an empty rectangle. This is the same reasoning the favourite heart
+  already followed; these were missed at the time.
+
+  `meal-plan-day` and `recipe-rating` still carried glyphs after this release; those are fixed in
+  0.3.0.
 
 ### Migration
 

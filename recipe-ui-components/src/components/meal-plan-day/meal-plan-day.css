@@ -133,12 +133,16 @@
   height: 1.25rem;
   display: grid;
   place-items: center;
-  font-size: 0.625rem;
   color: var(--day-muted);
   cursor: pointer;
   background: transparent;
   border: none;
   border-radius: 999px;
+}
+
+.meal__remove svg {
+  width: 0.625rem;
+  height: 0.625rem;
 }
 
 .meal__remove:hover {

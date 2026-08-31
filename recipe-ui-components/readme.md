@@ -194,13 +194,20 @@ field, so nothing is displayed by default rather than inventing a value.
 </recipe-card>
 ```
 
-Set the category label's colour per category with `--recipe-card-category-color`:
+The category renders as a tinted pill. Set both tokens per category:
 
 ```css
 recipe-card[data-category='Seafood'] {
-  --recipe-card-category-color: #0e7490;
+  --recipe-card-category-color: #0e718c;
+  --recipe-card-category-bg: #ddecef;
 }
 ```
+
+Check the pair **against each other**, not against the card — the text sits on the tint, not on
+`--recipe-card-bg`. A hue chosen to look good as a tint usually fails as its own text colour. If you
+generate tints programmatically, holding the tint strength constant across categories and darkening
+the text where needed looks more deliberate than letting each tint float to whatever its colour can
+carry.
 
 The favorite toggle is a heart — filled when `isFavorite`, outlined when not — drawn as an
 inline SVG so it does not depend on a font having the glyph. Theme it with
@@ -209,12 +216,13 @@ inline SVG so it does not depend on a font having the glyph. Theme it with
 
 ### `<recipe-search-bar>`
 
-| Prop          | Attribute     | Type     | Default             |
-| ------------- | ------------- | -------- | ------------------- |
-| `value`       | `value`       | `string` | `''`                |
-| `placeholder` | `placeholder` | `string` | `'Search recipes…'` |
-| `debounceMs`  | `debounce-ms` | `number` | `300`               |
-| `label`       | `label`       | `string` | `'Search recipes'`  |
+| Prop          | Attribute     | Type      | Default             |
+| ------------- | ------------- | --------- | ------------------- |
+| `value`       | `value`       | `string`  | `''`                |
+| `placeholder` | `placeholder` | `string`  | `'Search recipes…'` |
+| `debounceMs`  | `debounce-ms` | `number`  | `300`               |
+| `label`       | `label`       | `string`  | `'Search recipes'`  |
+| `iconSubmit`  | `icon-submit` | `boolean` | `false`             |
 
 | Event          | Detail                                                  |
 | -------------- | ------------------------------------------------------- |
@@ -222,9 +230,35 @@ inline SVG so it does not depend on a font having the glyph. Theme it with
 | `searchClear`  | `void`                                                  |
 
 Method: `setFocus(): Promise<void>`.
-Slot: `filters`. Parts: `field`, `submit`.
+Slots: `filters` (right of the input), `hint` (between the input and the submit button).
+Parts: `field`, `submit`.
 
 Submitting the form flushes the pending debounce instead of waiting it out.
+
+`iconSubmit` swaps the labelled button for a round icon button, for use as a page's primary search
+field. The accessible name stays `Search` either way — the label is visually replaced, not removed.
+
+The `hint` slot is for a keyboard-shortcut chip. It is a slot rather than a prop because the right
+text depends on the user's platform, which the consumer knows and this component does not — and
+because the shortcut itself has to be bound by the consumer:
+
+```svelte
+<recipe-search-bar bind:this={bar} use:setProps={{ iconSubmit: true }}>
+  <kbd slot="hint" aria-hidden="true">{isMac ? '⌘K' : 'Ctrl K'}</kbd>
+</recipe-search-bar>
+```
+
+```ts
+// setFocus() is a Stencil method, so wait for the element to be upgraded.
+if (event.key === 'k' && (event.metaKey || event.ctrlKey)) {
+  await customElements.whenDefined('recipe-search-bar');
+  event.preventDefault();
+  await bar.setFocus();
+}
+```
+
+Size it with `--search-pad-y` (the bar's height is padding, not a fixed value), `--search-radius`
+and `--search-shadow`.
 
 ### `<recipe-filter-panel>`
 
